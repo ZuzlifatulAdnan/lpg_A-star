@@ -21,6 +21,12 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'nik',
+        'role',
+        'image',
+        'alamat',
+        'no_hp',
+        'verifikasi',
     ];
 
     /**
@@ -45,4 +51,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function stokLpg()
+    {
+        return $this->hasMany(stok_lpg::class);
+    }
+
 }

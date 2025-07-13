@@ -11,9 +11,11 @@ class pemesanan extends Model
     protected $fillable = [
         'user_id',
         'lokasi_id',
+        'no_pemesanan',
         'jumlah',
         'status',
         'catatan',
+        'total_harga',
     ];
     public function user()
     {

@@ -1,0 +1,19 @@
+.logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0; /* Memberikan ruang di sekitar logo */
+}
+
+.logo-img {
+    width: 100%; /* Memaksimalkan lebar logo agar memenuhi lebar sidebar */
+    height: auto; /* Menjaga rasio aspek logo */
+    max-height: 150px; /* Perbesar tinggi logo agar sesuai dengan sidebar */
+    object-fit: contain; /* Pastikan logo tidak terdistorsi */
+}
+
+@media (max-width: 768px) {
+    .logo-img {
+        max-height: 120px; /* Menyesuaikan tinggi logo di layar kecil agar tetap proporsional */
+    }
+}

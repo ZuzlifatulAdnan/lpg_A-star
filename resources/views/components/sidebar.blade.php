@@ -1,0 +1,101 @@
+<div id="sidebar">
+    <div class="sidebar-wrapper active">
+        <div class="sidebar-header position-relative">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="logo">
+                    <a href="{{ url('/beranda') }}">
+                        {{-- <img src="{{ asset('img/logo/logo.png') }}" alt="Logo" class="img-fluid"
+                            style="max-width: 100%; height: auto; /* Adjust size here */"> --}}
+                    </a>
+                </div>
+                <div class="sidebar-toggler x">
+                    <a href="#" class="sidebar-hide d-xl-none d-block">
+                        <i class="bi bi-x bi-middle"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        @if (Auth::user())
+            <div class="sidebar-menu">
+                <ul class="menu">
+                    <li class="sidebar-title">Menu</li>
+
+                    <li class="sidebar-item {{ $type_menu == 'beranda' ? 'active' : '' }}">
+                        <a href="{{ route('beranda.index') }}" class='sidebar-link'>
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Beranda</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item {{ $type_menu == 'lokasi' ? 'active' : '' }}">
+                        <a href="{{ route('lokasi.index') }}" class='sidebar-link'>
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <span>Data Lokasi</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item {{ $type_menu == 'order' ? 'active' : '' }}">
+                        <a href="{{ route('toko.index') }}" class='sidebar-link'>
+                            <i class="bi bi-basket"></i>
+                            <span>Order</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item has-sub {{ $type_menu == 'pemesanan' ? 'active' : '' }}">
+                        <a href="#" class='sidebar-link'>
+                            <i class="bi bi-receipt"></i>
+                            <span>Pemesanan</span>
+                        </a>
+                        <ul class="submenu">
+                            <li class="submenu-item {{ Request::is('pemesanan') ? 'active' : '' }}">
+                                <a href="{{ route('pemesanan.index') }}">Semua Pemesanan</a>
+                            </li>
+                            <li class="submenu-item {{ Request::is('pemesanan/terima') ? 'active' : '' }}">
+                                <a href="{{ route('pemesanan.diterima') }}">Data Diterima</a>
+                            </li>
+                            <li class="submenu-item {{ Request::is('pemesanan/proses') ? 'active' : '' }}">
+                                <a href="{{ route('pemesanan.proses') }}">Sedang Diproses</a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="sidebar-item {{ $type_menu == 'pembayaran' ? 'active' : '' }}">
+                        <a href="{{ route('pembayaran.index') }}" class='sidebar-link'>
+                            <i class="bi bi-wallet2"></i>
+                            <span>Pembayaran</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item {{ $type_menu == 'riwayat' ? 'active' : '' }}">
+                        <a href="{{ route('riwayat.index') }}" class='sidebar-link'>
+                            <i class="bi bi-clock-history"></i>
+                            <span>Riwayat</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item {{ $type_menu == 'stok' ? 'active' : '' }}">
+                        <a href="{{ route('stok.index') }}" class='sidebar-link'>
+                            <i class="bi bi-box-seam"></i>
+                            <span>Stok LPG</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item {{ $type_menu == 'toko' ? 'active' : '' }}">
+                        <a href="{{ route('toko.index') }}" class='sidebar-link'>
+                            <i class="bi bi-shop-window"></i>
+                            <span>Toko Terdekat</span>
+                        </a>
+                    </li>
+
+                    <li class="sidebar-item {{ $type_menu == 'user' ? 'active' : '' }}">
+                        <a href="{{ route('user.index') }}" class='sidebar-link'>
+                            <i class="bi bi-people-fill"></i>
+                            <span>Pengguna</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        @else
+        @endif
+    </div>
+</div>

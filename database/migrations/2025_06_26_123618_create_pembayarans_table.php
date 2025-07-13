@@ -15,10 +15,12 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('pemesanan_id')->constrained('pemesanans')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->string('no_pembayaran')->nullable();
+            
             $table->string('metode_pembayaran');
             $table->string('jumlah_dibayar');
             $table->string('status');
-            $table->string('catatan')->nullable();
+            $table->string('bukti_bayar')->nullable();
             $table->date('tanggal_bayar');
             $table->timestamps();
         });

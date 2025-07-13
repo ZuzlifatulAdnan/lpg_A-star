@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
             $table->foreignId('lokasi_id')->constrained('lokasis')->cascadeOnDelete()->cascadeOnUpdate();
+            $table->string('no_pemesanan')->nullable();
             $table->string('jumlah');
             $table->string('status');
             $table->string('catatan')->nullable();

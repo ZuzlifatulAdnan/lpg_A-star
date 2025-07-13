@@ -11,11 +11,12 @@ class pembayaran extends Model
     protected $fillable = [
         'user_id',
         'pemesanan_id',
+        'no_pembayaran',
         'metode_pembayaran',
         'jumlah_dibayar',
         'status',
         'tanggal_bayar',
-        'catatan',
+        'bukti_bayar',
     ];
     public function user()
     {

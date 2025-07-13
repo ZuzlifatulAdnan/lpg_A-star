@@ -13,7 +13,6 @@ class stok_lpg extends Model
         'jenis_pemilik',
         'jumlah',
         'lokasi_id',
-        'catatan',
     ];
     public function user()
     {
