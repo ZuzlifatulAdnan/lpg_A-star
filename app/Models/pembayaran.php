@@ -15,7 +15,6 @@ class pembayaran extends Model
         'metode_pembayaran',
         'jumlah_dibayar',
         'status',
-        'tanggal_bayar',
         'bukti_bayar',
     ];
     public function user()

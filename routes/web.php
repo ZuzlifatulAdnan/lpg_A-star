@@ -25,6 +25,8 @@ Route::middleware(['auth'])->group(function () {
     // order
     Route::resource('order', OrderController::class);
     // pembayaran
+    Route::get('/pembayaran/{id}/edit-user', [PembayaranController::class, 'editUser'])->name('pembayaran.edit_user');
+    Route::put('/pembayaran/{id}/edit-user', [PembayaranController::class, 'updateUser'])->name('pembayaran.update_user');
     Route::resource('pembayaran', PembayaranController::class);
     // pemesanan
     Route::get('/pemesanan/proses', [PemesananController::class, 'showProses'])->name('pemesanan.proses');

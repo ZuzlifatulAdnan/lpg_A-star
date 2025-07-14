@@ -21,8 +21,13 @@ class pemesanan extends Model
     {
         return $this->belongsTo(User::class);
     }
-     public function lokasi()
+    public function lokasi()
     {
         return $this->belongsTo(lokasi::class);
     }
+    public function pembayaran()
+    {
+        return $this->hasOne(Pembayaran::class, 'pemesanan_id', 'id');
+    }
+
 }

@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('jumlah');
             $table->string('status');
             $table->string('catatan')->nullable();
-            $table->date('tanggal_pesan');
+            $table->string('total_harga');
             $table->timestamps();
         });
     }

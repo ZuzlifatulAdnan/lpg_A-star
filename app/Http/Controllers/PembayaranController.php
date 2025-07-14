@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\pembayaran;
+use App\Models\pemesanan;
 use Illuminate\Http\Request;
 
 class PembayaranController extends Controller
@@ -50,8 +51,8 @@ class PembayaranController extends Controller
     public function create()
     {
         $type_menu = 'pembayaran';
-        $pembayarans = pembayaran::all();
-        return view('pages.pembayaran.create', compact('type_menu', 'pembayarans'));
+        $pemesanan_list = pemesanan::with('user')->get();
+        return view('pages.pembayaran.create', compact('type_menu', 'pemesanan_list'));
     }
 
     public function store(Request $request)
@@ -61,6 +62,7 @@ class PembayaranController extends Controller
             'pemesanan_id' => 'required',
             'metode_pembayaran' => 'required',
             'jumlah_dibayar' => 'required',
+            'status' => 'requires',
             'bukti_bayar' => 'required|mimes:jpg,jpeg,png,gif',
         ]);
         // Handle the image upload if present
@@ -82,59 +84,61 @@ class PembayaranController extends Controller
             'metode_pembayaran' => $validatedData['metode_pembayaran'],
             'jumlah_dibayar' => $validatedData['jumlah_dibayar'],
             'bukti_bayar' => $imagePath,
-            'status' => 'Proses Pembayaran'
+            'status' => $validatedData['status']
         ]);
-        return redirect()->route('pembayaran.index')->with('success', 'Pembayaran dengan No Pembayaran '.$pembayaran->no_pembayaran .' berhasil ditambahkan.');
+        return redirect()->route('pembayaran.index')->with('success', 'Pembayaran dengan No Pembayaran ' . $pembayaran->no_pembayaran . ' berhasil ditambahkan.');
     }
 
-    public function edit(pembayaran $pembayaran)
+    public function edit($id)
     {
         $type_menu = 'pembayaran';
-        $pembayarans = pembayaran::all();
-        return view('pages.pembayaran.edit', [
-            'type_menu' => $type_menu,
-            'pembayaran' => $pembayaran,
-            'pembayarans' => $pembayarans,
-        ]);
+        $pembayaran = Pembayaran::findOrFail($id);
+        $pemesanan_list = pemesanan::with('user')->get();
+
+        return view('pages.pembayaran.edit', compact('type_menu', 'pembayaran', 'pemesanan_list'));
     }
 
-    public function update(Request $request, pembayaran $pembayaran)
+    public function update(Request $request, $id)
     {
-        // Validate the form data
-        $request->validate([
+        $validatedData = $request->validate([
             'pemesanan_id' => 'required',
             'metode_pembayaran' => 'required',
-            'jumlah_dibayar' => 'required',
-            'bukti_bayar' => 'nullable|mimes:jpg,jpeg,png,gif',
+            'jumlah_dibayar' => 'required|numeric',
+            'status' => 'required',
+            'bukti_bayar' => 'nullable|mimes:jpg,jpeg,png,gif|max:2048',
         ]);
 
-        // Update the user data
-        $pembayaran->update([
-            'pemesanan_id' => $request->pemesanan_id,
-            'metode_pembayaran' => $request->metode_pembayaran,
-            'jumlah_dibayar' => $request->jumlah_dibayar,
-            'status' => $request->status,
-        ]);
+        $pembayaran = Pembayaran::findOrFail($id);
 
         if ($request->hasFile('bukti_bayar')) {
+            // hapus bukti lama kalau ada
+            if ($pembayaran->bukti_bayar && file_exists(public_path('img/bukti_bayar/' . $pembayaran->bukti_bayar))) {
+                unlink(public_path('img/bukti_bayar/' . $pembayaran->bukti_bayar));
+            }
             $image = $request->file('bukti_bayar');
-            $path = uniqid() . '.' . $image->getClientOriginalExtension();
-            $image->move('img/bukti_bayar/', $path);
-            $pembayaran->update([
-                'bukti_bayar' => $path
-            ]);
+            $imagePath = uniqid() . '.' . $image->getClientOriginalExtension();
+            $image->move(public_path('img/bukti_bayar/'), $imagePath);
+            $pembayaran->bukti_bayar = $imagePath;
         }
 
-        // Redirect kembali ke halaman index dengan pesan sukses
-        return redirect()->route('pembayaran.index')->with('success', 'Pembayaran dengan No Pembayaran '. $pembayaran->no_pembayaran .' berhasil diperbarui.');
+        $pembayaran->update([
+            'pemesanan_id' => $validatedData['pemesanan_id'],
+            'metode_pembayaran' => $validatedData['metode_pembayaran'],
+            'jumlah_dibayar' => $validatedData['jumlah_dibayar'],
+            'status' => $validatedData['status'],
+        ]);
+
+        return redirect()->route('pembayaran.index')->with('success', 'Pembayaran berhasil diperbarui.');
     }
 
-
-    public function show(pembayaran $pembayaran)
+    public function show($id)
     {
         $type_menu = 'pembayaran';
-        return view('pages.pembayaran.show', compact('pembayaran', 'type_menu'));
+        $pembayaran = Pembayaran::with('pemesanan.user')->findOrFail($id);
+
+        return view('pages.pembayaran.show', compact('type_menu', 'pembayaran'));
     }
+
     public function destroy(pembayaran $pembayaran)
     {
         // Hapus bukti bayar jika ada
@@ -143,40 +147,48 @@ class PembayaranController extends Controller
         }
         // Hapus data pembayaran
         $pembayaran->delete();
-        return redirect()->route('pembayaran.index')->with('success', 'Pembayaran dengan No Pembayaran '.$pembayaran->no_pembayaran.' berhasil dihapus.');
+        return redirect()->route('pembayaran.index')->with('success', 'Pembayaran dengan No Pembayaran ' . $pembayaran->no_pembayaran . ' berhasil dihapus.');
     }
     // Menampilkan pembayaran yang sedang diproses
-    public function showProses()
+    public function editUser($id)
     {
-        $type_menu = 'pembayaran';
-        $pembayarans = pembayaran::where('status', 'Proses Pembayaran')
-            ->latest()
-            ->paginate(10);
+        $type_menu = 'riwayat';
+        $pembayaran = Pembayaran::findOrFail($id);
 
-        return view('pages.pembayaran.proses', compact('pembayarans', 'type_menu'));
+        $pemesanan = Pemesanan::with('user')
+            ->findOrFail($pembayaran->pemesanan_id);
+
+        return view('pages.pembayaran.edit-user', compact('type_menu', 'pembayaran', 'pemesanan'));
     }
 
-    // Mengubah status pembayaran
-    public function updateStatus(Request $request, $id)
+    public function updateUser(Request $request, $id)
     {
         $request->validate([
-            'status' => 'required|in:Menunggu Pembayaran,Proses Pembayaran,Pembayaran Berhasil',
+            'metode_pembayaran' => 'required',
+            'bukti_bayar' => 'nullable|mimes:jpg,jpeg,png,gif|max:2048',
         ]);
 
-        $pembayaran = pembayaran::find($id);
-        if (!$pembayaran) {
-            return redirect()->back()->with('error', 'Data pembayaran tidak ditemukan.');
+        $pembayaran = Pembayaran::findOrFail($id);
+
+        $data = [
+            'metode_pembayaran' => $request->metode_pembayaran,
+            'status' => 'Proses Pembayaran',
+        ];
+
+        if ($request->hasFile('bukti_bayar')) {
+            $file = $request->file('bukti_bayar');
+            $filename = uniqid() . '.' . $file->getClientOriginalExtension();
+            $file->move(public_path('img/bukti_bayar/'), $filename);
+
+            if ($pembayaran->bukti_bayar && file_exists(public_path('img/bukti_bayar/' . $pembayaran->bukti_bayar))) {
+                unlink(public_path('img/bukti_bayar/' . $pembayaran->bukti_bayar));
+            }
+
+            $data['bukti_bayar'] = $filename;
         }
 
-        $pembayaran->status = $request->status;
-        $pembayaran->save();
+        $pembayaran->update($data);
 
-        // Opsional: Update status pembayaran jika dibutuhkan
-        if ($request->status === 'Pembayaran Berhasil' && $pembayaran->pembayaran) {
-            $pembayaran->pembayaran->status = 'Selesai';
-            $pembayaran->pembayaran->save();
-        }
-
-        return redirect()->back()->with('success', 'Status pembayaran dengan No Pembayaran '. $pembayaran->no_pembayaran.' berhasil diperbarui.');
+        return redirect()->route('riwayat.index')->with('success', 'Pembayaran berhasil diperbarui.');
     }
 }
