@@ -52,7 +52,31 @@
                                 @enderror
                             </div>
 
-                            {{-- Tambahan Dinamis --}}
+                            {{-- Status Pembayaran --}}
+                            <div class="mb-3">
+                                <label for="status" class="form-label">Status Pembayaran</label>
+                                <select name="status" id="status"
+                                    class="form-select @error('status') is-invalid @enderror" required>
+                                    <option value="">-- Pilih Status --</option>
+                                    <option value="Menunggu Pembayaran"
+                                        {{ old('status') == 'Menunggu Pembayaran' ? 'selected' : '' }}>
+                                        Menunggu Pembayaran
+                                    </option>
+                                    <option value="Proses Pembayaran"
+                                        {{ old('status') == 'Proses Pembayaran' ? 'selected' : '' }}>
+                                        Proses Pembayaran
+                                    </option>
+                                    <option value="Pembayaran Berhasil"
+                                        {{ old('status') == 'Pembayaran Berhasil' ? 'selected' : '' }}>
+                                        Pembayaran Berhasil
+                                    </option>
+                                </select>
+                                @error('status')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            {{-- QRIS / Bank --}}
                             <div id="qris-section" class="mb-3 d-none">
                                 <label class="form-label">QRIS</label><br>
                                 <img src="{{ asset('img/qris-barcode.png') }}" alt="QRIS Barcode" style="max-width:200px;">
@@ -89,14 +113,12 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
 
-                                {{-- Preview --}}
                                 <div class="mt-3">
                                     <img id="preview-bukti" src="#" alt="Preview Bukti Bayar"
                                         style="max-width:200px; display:none;" />
                                 </div>
                             </div>
 
-                            {{-- Tombol --}}
                             <button type="submit" class="btn btn-primary">Simpan</button>
                             <a href="{{ route('pembayaran.index') }}" class="btn btn-warning">Batal</a>
                         </form>
@@ -106,7 +128,6 @@
         </div>
     </div>
 
-    {{-- Script Dinamis --}}
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function() {
@@ -140,17 +161,14 @@
                 pemesananSelect.addEventListener('change', updateJumlah);
                 metodeSelect.addEventListener('change', updateMetode);
 
-                // image preview
                 buktiBayarInput.addEventListener('change', function() {
                     const file = this.files[0];
                     if (file) {
                         const reader = new FileReader();
-
                         reader.onload = function(e) {
                             previewBukti.src = e.target.result;
                             previewBukti.style.display = 'block';
                         }
-
                         reader.readAsDataURL(file);
                     } else {
                         previewBukti.src = '#';

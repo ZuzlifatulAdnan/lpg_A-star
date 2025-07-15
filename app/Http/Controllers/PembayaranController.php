@@ -52,42 +52,48 @@ class PembayaranController extends Controller
     {
         $type_menu = 'pembayaran';
         $pemesanan_list = pemesanan::with('user')->get();
+
         return view('pages.pembayaran.create', compact('type_menu', 'pemesanan_list'));
     }
 
     public function store(Request $request)
     {
-        // validasi data dari form tambah user
+        // Validasi data dari form
         $validatedData = $request->validate([
-            'pemesanan_id' => 'required',
+            'pemesanan_id' => 'required|exists:pemesanan,id',
             'metode_pembayaran' => 'required',
-            'jumlah_dibayar' => 'required',
-            'status' => 'requires',
-            'bukti_bayar' => 'required|mimes:jpg,jpeg,png,gif',
+            'status' => 'required',
+            'jumlah_dibayar' => 'required|numeric',
+            'bukti_bayar' => 'required|mimes:jpg,jpeg,png,gif|max:2048',
         ]);
-        // Handle the image upload if present
+
+        // Upload bukti bayar
         $imagePath = null;
         if ($request->hasFile('bukti_bayar')) {
             $image = $request->file('bukti_bayar');
             $imagePath = uniqid() . '.' . $image->getClientOriginalExtension();
-            $image->move('img/bukti_bayar/', $imagePath);
+            $image->move(public_path('img/bukti_bayar'), $imagePath);
         }
-        // Buat no_pembayaran
-        $tanggal = date('Ymd');
+
+        // Generate No Pembayaran
+        $tanggal = now()->format('Ymd');
         $jumlahPembayaranHariIni = Pembayaran::whereDate('created_at', now()->toDateString())->count() + 1;
         $no_pembayaran = 'PAY-' . $tanggal . '-' . str_pad($jumlahPembayaranHariIni, 3, '0', STR_PAD_LEFT);
 
-        //masukan data kedalam tabel users
-        $pembayaran = pembayaran::create([
+        // Simpan data pembayaran
+        $pembayaran = Pembayaran::create([
             'no_pembayaran' => $no_pembayaran,
             'pemesanan_id' => $validatedData['pemesanan_id'],
             'metode_pembayaran' => $validatedData['metode_pembayaran'],
+            'status' => $validatedData['status'],
             'jumlah_dibayar' => $validatedData['jumlah_dibayar'],
-            'bukti_bayar' => $imagePath,
-            'status' => $validatedData['status']
+            'bukti_bayar' => $imagePath
         ]);
-        return redirect()->route('pembayaran.index')->with('success', 'Pembayaran dengan No Pembayaran ' . $pembayaran->no_pembayaran . ' berhasil ditambahkan.');
+
+        return redirect()->route('pembayaran.index')
+            ->with('success', 'Pembayaran dengan No Pembayaran ' . $pembayaran->no_pembayaran . ' berhasil ditambahkan.');
     }
+
 
     public function edit($id)
     {

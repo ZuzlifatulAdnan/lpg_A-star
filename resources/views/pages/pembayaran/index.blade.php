@@ -33,13 +33,19 @@
                         {{-- Filter dan Search --}}
                         <form method="GET" action="{{ route('pembayaran.index') }}">
                             <div class="row mb-3">
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <select name="status" class="form-select" onchange="this.form.submit()">
                                         <option value="">-- Semua Status --</option>
-                                        <option value="lunas" {{ request('status') == 'lunas' ? 'selected' : '' }}>Lunas
+                                        <option value="Menunggu Pembayaran"
+                                            {{ request('status') == 'Menunggu Pembayaran' ? 'selected' : '' }}>Menunggu
+                                            Pembayaran
                                         </option>
-                                        <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>
-                                            Pending</option>
+                                        <option value="Proses Pembayaran"
+                                            {{ request('status') == 'Proses Pembayaran' ? 'selected' : '' }}>
+                                            Proses Pembayaran</option>
+                                        <option value="Pembayaran Berhasil"
+                                            {{ request('status') == 'Pembayaran Berhasil' ? 'selected' : '' }}>
+                                            Pembayaran Berhasil</option>
                                     </select>
                                 </div>
 
@@ -69,16 +75,19 @@
                                         @endfor
                                     </select>
                                 </div>
-
-                                <div class="col-md-3">
+                                <div class="col-md-2">
                                     <input type="text" name="search" class="form-control"
                                         placeholder="Cari nama atau no pembayaran..." value="{{ request('search') }}">
                                 </div>
-
                                 <div class="col-md-2">
                                     <button type="submit" class="btn btn-primary w-100">
                                         <i class="fas fa-search me-1"></i> Cari
                                     </button>
+                                </div>
+                                <div class="col-md-2">
+                                    <a href="{{ route('pembayaran.index') }}" class="btn btn-outline-secondary w-100">
+                                        <i class="fas fa-sync-alt"></i> Reset
+                                    </a>
                                 </div>
                             </div>
                         </form>

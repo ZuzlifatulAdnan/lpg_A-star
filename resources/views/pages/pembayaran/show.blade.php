@@ -31,7 +31,7 @@
                             </tr>
                             <tr>
                                 <th>Jumlah Dibayar</th>
-                                <td>{{ number_format($pembayaran->jumlah_dibayar) }}</td>
+                                <td>Rp {{ number_format($pembayaran->jumlah_dibayar, 0, ',', '.') }}</td>
                             </tr>
                             <tr>
                                 <th>Status</th>
@@ -42,7 +42,8 @@
                                 <td>
                                     @if ($pembayaran->bukti_bayar)
                                         <img src="{{ asset('img/bukti_bayar/' . $pembayaran->bukti_bayar) }}"
-                                            style="max-width:200px;">
+                                            alt="Bukti Bayar" class="img-thumbnail" style="max-width: 200px; cursor: pointer;"
+                                            data-bs-toggle="modal" data-bs-target="#buktiBayarModal">
                                     @else
                                         Tidak ada
                                     @endif
@@ -53,6 +54,22 @@
                     </div>
                 </div>
             </section>
+        </div>
+    </div>
+
+    {{-- Modal Bukti Bayar --}}
+    <div class="modal fade" id="buktiBayarModal" tabindex="-1" aria-labelledby="buktiBayarModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="buktiBayarModalLabel">Bukti Pembayaran</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img src="{{ asset('img/bukti_bayar/' . $pembayaran->bukti_bayar) }}" alt="Bukti Bayar"
+                        class="img-fluid rounded">
+                </div>
+            </div>
         </div>
     </div>
 @endsection

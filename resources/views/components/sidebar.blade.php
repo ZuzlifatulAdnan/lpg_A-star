@@ -50,7 +50,7 @@
                             <li class="submenu-item {{ Request::is('pemesanan') ? 'active' : '' }}">
                                 <a href="{{ route('pemesanan.index') }}">Semua Pemesanan</a>
                             </li>
-                            <li class="submenu-item {{ Request::is('pemesanan/terima') ? 'active' : '' }}">
+                            <li class="submenu-item {{ Request::is('pemesanan/diterima') ? 'active' : '' }}">
                                 <a href="{{ route('pemesanan.diterima') }}">Data Diterima</a>
                             </li>
                             <li class="submenu-item {{ Request::is('pemesanan/proses') ? 'active' : '' }}">

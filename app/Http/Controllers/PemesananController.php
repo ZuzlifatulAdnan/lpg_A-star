@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\lokasi;
 use App\Models\pembayaran;
 use App\Models\pemesanan;
+use App\Models\stok_lpg;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PemesananController extends Controller
 {
@@ -77,6 +79,29 @@ class PemesananController extends Controller
         $jumlahHariIni = Pemesanan::whereDate('created_at', now()->toDateString())->count() + 1;
         $no_pemesanan = 'ORD-' . $tanggal . '-' . str_pad($jumlahHariIni, 3, '0', STR_PAD_LEFT);
 
+        // 🔷 Hanya kurangi stok jika status = Diterima
+        if ($validated['status'] === 'Diterima') {
+            // cari stok_lpg yg sesuai
+            $stok = stok_lpg::where('user_id', $validated['user_id'])
+                ->where('lokasi_id', $validated['lokasi_id'])
+                ->first();
+
+            if (!$stok) {
+                return redirect()->route('pemesanan.index')
+                    ->with('error', 'Stok LPG untuk pengguna & lokasi ini tidak ditemukan.');
+            }
+
+            if ($stok->jumlah < $validated['jumlah']) {
+                return redirect()->route('pemesanan.index')
+                    ->with('error', 'Stok LPG tidak cukup. Tersedia: ' . $stok->jumlah);
+            }
+
+            // kurangi stok
+            $stok->jumlah -= $validated['jumlah'];
+            $stok->save();
+        }
+
+        // buat pemesanan
         $pemesanan = Pemesanan::create([
             'no_pemesanan' => $no_pemesanan,
             'user_id' => $validated['user_id'],
@@ -87,39 +112,19 @@ class PemesananController extends Controller
             'total_harga' => $validated['total_harga'],
         ]);
 
-        // 🔷 Kurangi stok jika status Diterima
-        if ($validated['status'] === 'Diterima') {
-            $lokasi = Lokasi::find($validated['lokasi_id']);
-
-            if ($lokasi->stock_lpg >= $validated['jumlah']) {
-                $lokasi->stock_lpg -= $validated['jumlah'];
-                $lokasi->save();
-            } else {
-                return redirect()->route('pemesanan.index')
-                    ->with('error', 'Stok LPG tidak cukup di lokasi ini.');
-            }
-        }
-
         return redirect()->route('pemesanan.index')
             ->with('success', 'Pemesanan ' . $pemesanan->no_pemesanan . ' berhasil ditambahkan.');
     }
-
-
-    public function edit(Pemesanan $kelolapemesanan)
+    public function edit($id)
     {
-        $type_menu = 'kelolapemesanan';
+        $type_menu = 'pemesanan';
+        $pemesanan = Pemesanan::findOrFail($id);
         $users = User::all();
         $lokasis = Lokasi::all();
 
-        return view('pages.pemesanan.edit', [
-            'type_menu' => $type_menu,
-            'pemesanan' => $kelolapemesanan,
-            'users' => $users,
-            'lokasis' => $lokasis,
-        ]);
+        return view('pages.pemesanan.edit', compact('pemesanan', 'users', 'lokasis', 'type_menu'));
     }
-
-    public function update(Request $request, Pemesanan $pemesanan)
+    public function update(Request $request, $id)
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
@@ -130,97 +135,200 @@ class PemesananController extends Controller
             'total_harga' => 'required|numeric|min:0',
         ]);
 
-        $lokasi = Lokasi::findOrFail($validated['lokasi_id']);
+        $pemesanan = Pemesanan::findOrFail($id);
 
-        // Cek apakah status lama bukan Diterima, dan status baru adalah Diterima
-        if ($pemesanan->status !== 'Diterima' && $validated['status'] === 'Diterima') {
-            // pastikan stok cukup
-            if ($lokasi->stock_lpg >= $validated['jumlah']) {
-                $lokasi->stock_lpg -= $validated['jumlah'];
-                $lokasi->save();
-            } else {
-                return redirect()->back()->withInput()->with('error', 'Stok LPG tidak cukup di lokasi ini.');
-            }
+        // Ambil stok_lpg untuk user & lokasi
+        $stok = stok_lpg::where('user_id', $validated['user_id'])
+            ->where('lokasi_id', $validated['lokasi_id'])
+            ->first();
+
+        if (!$stok) {
+            return redirect()->back()->with('error', 'Stok LPG untuk pengguna & lokasi ini tidak ditemukan.');
         }
 
-        // Update data pemesanan
-        $pemesanan->update($validated);
+        $statusLama = $pemesanan->status;
+        $jumlahLama = $pemesanan->jumlah;
+        $statusBaru = $validated['status'];
+        $jumlahBaru = $validated['jumlah'];
 
-        return redirect()->route('pemesanan.index')->with('success', 'Pemesanan berhasil diperbarui.');
+        DB::beginTransaction();
+        try {
+            // Jika status baru adalah "Selesai", stok tidak berubah
+            if ($statusBaru !== 'Selesai') {
+
+                if ($statusLama === 'Diterima' && $statusBaru === 'Diterima') {
+                    // tetap Diterima, cek selisih jumlah
+                    $selisih = $jumlahBaru - $jumlahLama;
+                    if ($selisih > 0) {
+                        if ($stok->jumlah < $selisih) {
+                            DB::rollBack();
+                            return redirect()->back()->with('error', 'Stok LPG tidak cukup untuk menambah jumlah pesanan.');
+                        }
+                        $stok->jumlah -= $selisih;
+                    } elseif ($selisih < 0) {
+                        $stok->jumlah += abs($selisih);
+                    }
+                } elseif ($statusLama !== 'Diterima' && $statusBaru === 'Diterima') {
+                    // baru menjadi Diterima
+                    if ($stok->jumlah < $jumlahBaru) {
+                        DB::rollBack();
+                        return redirect()->back()->with('error', 'Stok LPG tidak cukup untuk menerima pesanan.');
+                    }
+                    $stok->jumlah -= $jumlahBaru;
+                } elseif ($statusLama === 'Diterima' && !in_array($statusBaru, ['Diterima', 'Selesai'])) {
+                    // sebelumnya Diterima → sekarang bukan Diterima & bukan Selesai
+                    $stok->jumlah += $jumlahLama;
+                }
+
+                $stok->save();
+            }
+
+            $pemesanan->update([
+                'user_id' => $validated['user_id'],
+                'lokasi_id' => $validated['lokasi_id'],
+                'jumlah' => $validated['jumlah'],
+                'status' => $validated['status'],
+                'catatan' => $validated['catatan'],
+                'total_harga' => $validated['total_harga'],
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('pemesanan.index')
+                ->with('success', 'Pemesanan ' . $pemesanan->no_pemesanan . ' berhasil diperbarui.');
+
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
     }
-
-    public function show(pemesanan $pemesanan)
+    public function destroy(pemesanan $pemesanan)
+    {
+        $pemesanan->delete();
+        return redirect()->route('pemesanan.index')->with('success', 'pemesanan dengan No pemesanan ' . $pemesanan->no_pemesanan . ' berhasil dihapus.');
+    }
+    public function show($id)
     {
         $type_menu = 'pemesanan';
-        // ambil data pembayaran terkait
-        $pembayaran = pembayaran::where('pemesanan_id', $pemesanan->id)->first();
+        $pemesanan = Pemesanan::with(['user', 'lokasi', 'pembayaran'])->findOrFail($id);
 
-        return view('pages.pemesanan.show', [
-            'pemesanan' => $pemesanan,
-            'pembayaran' => $pembayaran,
+        return view('pages.pemesanan.show', compact('pemesanan', 'type_menu'));
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:Diterima,Diproses,Ditunda,Selesai',
+            'status_pembayaran' => 'required|in:Menunggu Pembayaran,Proses Pembayaran,Pembayaran Berhasil',
+        ]);
+
+        $pemesanan = pemesanan::findOrFail($id);
+
+        $stok = stok_lpg::where('user_id', $pemesanan->user_id)
+            ->where('lokasi_id', $pemesanan->lokasi_id)
+            ->first();
+
+        if (!$stok) {
+            return back()->with('error', 'Stok LPG untuk pengguna & lokasi ini tidak ditemukan.');
+        }
+
+        $statusLama = $pemesanan->status;
+        $statusBaru = $validated['status'];
+        $jumlah = $pemesanan->jumlah;
+
+        DB::beginTransaction();
+
+        try {
+            // Jika sebelumnya Diterima lalu status baru BUKAN Diterima, kembalikan stok
+            if ($statusLama === 'Diterima' && $statusBaru !== 'Diterima') {
+                $stok->jumlah == $jumlah;
+                $stok->save();
+            }
+
+            // Jika sebelumnya BUKAN Diterima lalu status baru Diterima, kurangi stok
+            if ($statusLama !== 'Diterima' && $statusBaru === 'Diterima') {
+                if ($stok->jumlah < $jumlah) {
+                    DB::rollBack();
+                    return back()->with('error', 'Stok LPG tidak cukup.');
+                }
+                $stok->jumlah -= $jumlah;
+                $stok->save();
+            }
+
+
+            // Update status pemesanan
+            $pemesanan->update([
+                'status' => $statusBaru,
+            ]);
+
+            // Update atau buat status pembayaran
+            $pembayaran = $pemesanan->pembayaran;
+            if ($pembayaran) {
+                $pembayaran->status = $validated['status_pembayaran'];
+                $pembayaran->save();
+            } else {
+                DB::rollBack();
+                return back()->with('error', "Pembayaran untuk pemesanan {$pemesanan->no_pemesanan} belum ada.");
+            }
+
+            DB::commit();
+
+            return redirect()->back()
+                ->with('success', "Status pemesanan {$pemesanan->no_pemesanan} berhasil diperbarui.");
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+        }
+    }
+
+    public function showDiterima(Request $request)
+    {
+        $type_menu = 'pemesanan';
+        $query = pemesanan::with(['user', 'pembayaran'])
+            ->where('status', 'Diterima');
+
+        if ($request->q) {
+            $query->where(function ($q) use ($request) {
+                $q->whereHas('user', function ($qq) use ($request) {
+                    $qq->where('name', 'like', '%' . $request->q . '%');
+                })
+                    ->orWhere('no_pemesanan', 'like', '%' . $request->q . '%');
+            });
+        }
+
+        $pemesanans = $query->latest()->paginate(10)->withQueryString();
+
+        return view('pages.pemesanan.terima', [
+            'pemesanans' => $pemesanans,
+            'title' => 'Diterima',
+            'request' => $request,
             'type_menu' => $type_menu,
         ]);
     }
-    public function destroy(pemesanan $kelolapemesanan)
-    {
-        $kelolapemesanan->delete();
-        return redirect()->route('kelolapemesanan.index')->with('success', 'pemesanan dengan No pemesanan ' . $kelolapemesanan->no_pemesanan . ' berhasil dihapus.');
-    }
-    // ✅ Menampilkan pemesanan yang statusnya "Diproses"
-    public function showProses()
-    {
-        $type_menu = 'kelolapemesanan';
-        $pemesanans = pemesanan::where('status', 'Diproses')->latest()->paginate(10);
-        return view('pages.kelolapemesanan.proses', compact('pemesanans', 'type_menu'));
-    }
 
-    // ✅ Update status pemesanan via modal
-    public function updateStatus(Request $request, $id)
-    {
-        $request->validate([
-            'status' => ['required', 'in:Diproses,Diterima,Ditolak,Dibatalkan,Selesai,Ditunda'],
-            'status_pembayaran' => ['nullable', 'in:Menunggu Pembayaran,Proses Pembayaran,Pembayaran Berhasil'],
-        ]);
-
-        $pemesanan = pemesanan::with('pembayaran')->findOrFail($id);
-
-        $pemesanan->status = $request->status;
-        $pemesanan->save();
-
-        if ($pemesanan->pembayaran) {
-            $pemesanan->pembayaran->status = $request->status_pembayaran;
-            $pemesanan->pembayaran->save();
-        }
-        // // Kirim notifikasi
-        // $fonnteService = app(FonnteService::class);
-        // // 🔹 Kirim ke pelanggan
-        // $customerPhone = $pemesanan->user->no_handphone;
-
-        // if ($customerPhone) {
-        //     $messageCustomer = "🧺 *Pesanan Self Service Anda!*\n\n" .
-        //         "🧾 *No pemesanan:* {$pemesanan->no_pemesanan}\n" .
-        //         "📅 *Tanggal pemesanan:* {$pemesanan->tanggal_pemesanan}\n" .
-        //         "⏰ *Jam pemesanan:* {$pemesanan->jam_pemesanan}\n" .
-        //         "⏳ *Durasi:* {$pemesanan->durasi} menit\n" .
-        //         "🪙 *Mesin:* {$pemesanan->mesin->nama}\n" .
-        //         "💰 *Koin:* {$pemesanan->koin}\n" .
-        //         "📝 *Catatan:* " . ($pemesanan->catatan ?: '-') . "\n" .
-        //         "💵 *Total Biaya:* Rp " . number_format($pemesanan->total_biaya, 0, ',', '.') . "\n\n" .
-        //         "📌 *Layanan:* {$pemesanan->service_type}\n\n" .
-        //         "💳 *Status Pembayaran:* " . ($pemesanan->pembayaran->status ?? '-') . "\n" .
-        //         "💰 *Jumlah yang harus dibayar:* Rp " . number_format($pemesanan->pembayaran->jumlah_dibayar ?? 0, 0, ',', '.') . "\n\n" .
-        //         "Terima kasih 🙏";
-
-        //     $fonnteService->sendMessage($customerPhone, $messageCustomer);
-        // }
-
-        return redirect()->back()->with('success', 'Status pemesanan ' . $pemesanan->no_pemesanan . ' berhasil diperbarui.');
-    }
-    public function showDiterima()
+    public function showProses(Request $request)
     {
         $type_menu = 'pemesanan';
-        $pemesanans = pemesanan::where('status', 'Diterima')->latest()->paginate(10);
-        return view('pages.kelolapemesanan.terima', compact('pemesanans', 'type_menu'));
+        $query = pemesanan::with(['user', 'pembayaran'])
+            ->where('status', 'Diproses');
+
+        if ($request->q) {
+            $query->where(function ($q) use ($request) {
+                $q->whereHas('user', function ($qq) use ($request) {
+                    $qq->where('name', 'like', '%' . $request->q . '%');
+                })
+                    ->orWhere('no_pemesanan', 'like', '%' . $request->q . '%');
+            });
+        }
+
+        $pemesanans = $query->latest()->paginate(10)->withQueryString();
+
+        return view('pages.pemesanan.proses', [
+            'pemesanans' => $pemesanans,
+            'title' => 'Diproses',
+            'request' => $request,
+            'type_menu' => $type_menu,
+        ]);
     }
 
 }
