@@ -29,7 +29,8 @@
                             <div class="card-body">
                                 <div class="d-flex justify-content-center align-items-center flex-column">
                                     <div class="avatar avatar-2xl">
-                                        <img src="{{ Auth::user()->image ? asset('img/user/' . Auth::user()->image) : asset('assets/compiled/jpg/2.jpg') }}" alt="Avatar" id="imagePreview">
+                                        <img src="{{ Auth::user()->image ? asset('img/user/' . Auth::user()->image) : asset('assets/compiled/jpg/2.jpg') }}"
+                                            alt="Avatar" id="imagePreview">
                                     </div>
 
                                     <h3 class="mt-3">{{ Auth::user()->name }}</h3>
@@ -41,33 +42,53 @@
                                     </a>
                                     <!-- Updated Button for Change Password -->
                                     <a href="{{ route('profile.show', Auth::user()) }}"
-                                    class="btn btn-warning mt-2 btn-block">Ganti Password</a>
+                                        class="btn btn-warning mt-2 btn-block">Ganti Password</a>
                                 </div>
                             </div>
                         </div>
                     </div>
+                    <!-- Kartu Informasi -->
                     <div class="col-12 col-lg-8">
-                        <div class="card">
+                        <div class="card shadow-sm">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">Informasi Profil</h5>
+                            </div>
                             <div class="card-body">
-                                <form action="{{ route('profile.update', Auth::user()) }}" method="POST">
-                                    @method('Patch')
-                                    @csrf
-                                    <div class="form-group">
-                                        <label for="name" class="form-label">Name</label>
-                                        <input type="text" name="name" id="name" class="form-control"
-                                            placeholder="Your Name" value="{{ Auth::user()->name }}" disabled>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="email" class="form-label">Email</label>
-                                        <input type="text" name="email" id="email" class="form-control"
-                                            placeholder="Your Email" value="{{ Auth::user()->email }}" disabled>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="nik" class="form-label">NIK</label>
-                                        <input type="text" name="text" id="nik" class="form-control"
-                                             value="{{ Auth::user()->nik }}" disabled>
-                                    </div>
-                                </form>
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>Nama</span>
+                                        <span class="fw-bold">{{ Auth::user()->name }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>Email</span>
+                                        <span class="fw-bold">{{ Auth::user()->email }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>NIK</span>
+                                        <span class="fw-bold">{{ Auth::user()->nik }}</span>
+                                    </li>
+                                     <li class="list-group-item d-flex justify-content-between">
+                                        <span>No Handphone</span>
+                                        <span class="fw-bold">{{ Auth::user()->no_hp }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>Alamat</span>
+                                        <span class="fw-bold text-end"
+                                            style="max-width: 60%;">{{ Auth::user()->alamat }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between">
+                                        <span>Verifikasi</span>
+                                        <span>
+                                            @if (Auth::user()->verifikasi=='Verifikasi')
+                                                <span class="badge bg-success"><i class="bi bi-check-circle"></i>
+                                                    Verifikasi</span>
+                                            @else
+                                                <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Belum
+                                                    Verifikasi</span>
+                                            @endif
+                                        </span>
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </div>

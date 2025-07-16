@@ -4,8 +4,8 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div class="logo">
                     <a href="{{ url('/beranda') }}">
-                        {{-- <img src="{{ asset('img/logo/logo.png') }}" alt="Logo" class="img-fluid"
-                            style="max-width: 100%; height: auto; /* Adjust size here */"> --}}
+                        <img src="{{ asset('img/logo/logo.png') }}" alt="Logo" class="img-fluid"
+                            style="max-width: 500 px ; height: auto; /* Adjust size here */">
                     </a>
                 </div>
                 <div class="sidebar-toggler x">
@@ -35,7 +35,7 @@
                     </li>
 
                     <li class="sidebar-item {{ $type_menu == 'order' ? 'active' : '' }}">
-                        <a href="{{ route('toko.index') }}" class='sidebar-link'>
+                        <a href="{{ route('pemesanan.order') }}" class='sidebar-link'>
                             <i class="bi bi-basket"></i>
                             <span>Order</span>
                         </a>

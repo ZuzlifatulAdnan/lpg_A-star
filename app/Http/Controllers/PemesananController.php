@@ -8,6 +8,7 @@ use App\Models\pemesanan;
 use App\Models\stok_lpg;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PemesananController extends Controller
@@ -112,8 +113,22 @@ class PemesananController extends Controller
             'total_harga' => $validated['total_harga'],
         ]);
 
+        // Buat no_pembayaran
+        $jumlahPembayaranHariIni = Pembayaran::whereDate('created_at', now()->toDateString())->count() + 1;
+        $no_pembayaran = 'PAY-' . $tanggal . '-' . str_pad($jumlahPembayaranHariIni, 3, '0', STR_PAD_LEFT);
+
+        // Buat data pembayaran awal
+        $pembayaran = Pembayaran::create([
+            'no_pembayaran' => $no_pembayaran,
+            'order_id' => $pemesanan->id,
+            'metode_pembayaran' => 'Belum dipilih',
+            'jumlah_dibayar' => $pemesanan->total_biaya,
+            'status' => 'Menunggu Pembayaran',
+        ]);
+
         return redirect()->route('pemesanan.index')
-            ->with('success', 'Pemesanan ' . $pemesanan->no_pemesanan . ' berhasil ditambahkan.');
+            ->with('success', 'Pemesanan ' . $pemesanan->no_pemesanan . ' berhasil ditambahkan. 
+            dan Pembayaran sudah dibuatkan dengan No Pembayaran ' . $pembayaran->no_pembayaran);
     }
     public function edit($id)
     {
@@ -329,6 +344,56 @@ class PemesananController extends Controller
             'request' => $request,
             'type_menu' => $type_menu,
         ]);
+    }
+    public function order(Request $request)
+    {
+        $type_menu = 'order';
+        $lokasis = Lokasi::all(); // atau query sesuai kebutuhan
+        $lokasi_id = $request->lokasi_id;
+
+        return view('pages.pemesanan.order', compact('type_menu', 'lokasis', 'lokasi_id'));
+    }
+
+    public function storeOrder(Request $request)
+    {
+        $validated = $request->validate([
+            'lokasi_id' => 'required|exists:lokasis,id',
+            'jumlah' => 'required|integer|min:1',
+            'catatan' => 'nullable|string',
+            'total_harga' => 'required|numeric|min:0',
+        ]);
+
+        // Buat no_pemesanan
+        $tanggal = now()->format('Ymd');
+        $jumlahHariIni = Pemesanan::whereDate('created_at', now()->toDateString())->count() + 1;
+        $no_pemesanan = 'ORD-' . $tanggal . '-' . str_pad($jumlahHariIni, 3, '0', STR_PAD_LEFT);
+
+        $pemesanan = Pemesanan::create([
+            'user_id' => Auth::id(),
+            'no_pemesanan' => $no_pemesanan,
+            'lokasi_id' => $validated['lokasi_id'],
+            'jumlah' => $validated['jumlah'],
+            'status' => 'Diproses',
+            'catatan' => $validated['catatan'],
+            'total_harga' => $validated['total_harga'],
+        ]);
+
+        // Buat no_pembayaran
+        $jumlahPembayaranHariIni = Pembayaran::whereDate('created_at', now()->toDateString())->count() + 1;
+        $no_pembayaran = 'PAY-' . $tanggal . '-' . str_pad($jumlahPembayaranHariIni, 3, '0', STR_PAD_LEFT);
+
+        // Buat data pembayaran awal
+        $pembayaran = Pembayaran::create([
+            'no_pembayaran' => $no_pembayaran,
+            'pemesanan_id' => $pemesanan->id,
+            'metode_pembayaran' => 'Belum dipilih',
+            'jumlah_dibayar' => $pemesanan->total_harga,
+            'status' => 'Menunggu Pembayaran',
+        ]);
+
+        return redirect()
+            ->route('pembayaran.edit_user', $pembayaran->id)
+            ->with('success', 'Pemesanan anda dengan No Order ' . $pemesanan->no_pemesanan . ' berhasil dibuat. Silakan lengkapi pembayaran Anda.');
     }
 
 }

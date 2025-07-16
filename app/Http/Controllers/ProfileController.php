@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Redirect;
 
 class ProfileController extends Controller
 {
-     public function index()
+    public function index()
     {
         $type_menu = 'profile';
 
@@ -30,14 +30,20 @@ class ProfileController extends Controller
 
         $validate = $request->validate([
             'name' => 'required|string|max:255',
-            'nik' => 'required',
-            'file' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'nik' => 'required|string|unique:users,nik,' . $user->id,
+            'alamat' => 'nullable|string',
+            'no_hp' => 'nullable|string',
+            'file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
 
         ]);
 
         $user->update([
             'name' => $request->name,
+            'email' => $request->email,
             'nik' => $request->nik,
+            'alamat' => $request->alamat,
+            'no_hp' => $request->no_hp,
         ]);
 
         if ($image) {

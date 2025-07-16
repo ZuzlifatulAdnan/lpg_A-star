@@ -98,7 +98,7 @@
                                                     <div class="modal-body">
 
                                                         {{-- Bukti Bayar --}}
-                                                        @if ($pemesanan->pembayaran->bukti_bayar)
+                                                        @if (optional($pemesanan->pembayaran)->bukti_bayar)
                                                             <div class="mb-3 text-center">
                                                                 <a href="{{ asset('img/bukti_bayar/' . $pemesanan->pembayaran->bukti_bayar) }}"
                                                                     target="_blank">
@@ -114,6 +114,7 @@
                                                                 <em>Tidak ada bukti bayar.</em>
                                                             </div>
                                                         @endif
+
 
                                                         {{-- Status Pemesanan --}}
                                                         <div class="mb-3">

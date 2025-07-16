@@ -4,8 +4,6 @@
 
 @push('style')
     <!-- CSS Libraries -->
-    {{-- <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}"> --}}
 @endpush
 
 @section('main')
@@ -34,16 +32,14 @@
                                     </div>
 
                                     <h3 class="mt-3">{{ Auth::user()->name }}</h3>
-                                    {{-- <p class="text-small">{{ ucfirst(Auth::user()->role) }}</p> --}}
-                                    <!-- Tambahkan Button Edit Data di bawah Nama -->
-                                    <a href="{{ route('profile.index', Auth::user()) }}"
-                                        class="btn btn-warning mt-2 btn-block">
+                                    <a href="{{ route('profile.index') }}" class="btn btn-warning mt-2 btn-block">
                                         Profile
                                     </a>
                                 </div>
                             </div>
                         </div>
                     </div>
+
                     <div class="col-12 col-lg-8">
                         <div class="card">
                             <div class="card-body">
@@ -55,16 +51,50 @@
                                         <label for="name">Nama</label>
                                         <input type="text" name="name" id="name"
                                             class="form-control @error('name') is-invalid @enderror"
-                                            value="{{ Auth::user()->name }}" required>
+                                            value="{{ old('name', Auth::user()->name) }}" required>
                                         @error('name')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
+
+                                    <div class="form-group">
+                                        <label for="email">Email</label>
+                                        <input type="email" name="email" id="email"
+                                            class="form-control @error('email') is-invalid @enderror"
+                                            value="{{ old('email', Auth::user()->email) }}" required>
+                                        @error('email')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
                                     <div class="form-group">
                                         <label for="nik">NIK</label>
-                                        <input type="number" name="nik" id="nik" class="form-control"
-                                            value="{{ Auth::user()->nik }}">
+                                        <input type="number" name="nik" id="nik"
+                                            class="form-control @error('nik') is-invalid @enderror"
+                                            value="{{ old('nik', Auth::user()->nik) }}" required>
+                                        @error('nik')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
+
+                                    <div class="form-group">
+                                        <label>Alamat</label>
+                                        <textarea name="alamat" class="form-control @error('alamat') is-invalid @enderror">{{ old('alamat', Auth::user()->alamat) }}</textarea>
+                                        @error('alamat')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>No HP</label>
+                                        <input type="text" name="no_hp"
+                                            class="form-control @error('no_hp') is-invalid @enderror"
+                                            value="{{ old('no_hp', Auth::user()->no_hp) }}">
+                                        @error('no_hp')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
                                     <div class="form-group">
                                         <label for="file">Gambar</label><br>
                                         <input type="file" name="file" id="file"
@@ -75,9 +105,8 @@
                                         @enderror
                                     </div>
 
-                                    <!-- Submit button -->
                                     <div class="form-group">
-                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                                     </div>
                                 </form>
 
@@ -91,7 +120,6 @@
 @endsection
 
 @push('scripts')
-    <!-- JS to handle image preview -->
     <script>
         function previewImage(event) {
             const preview = document.getElementById('imagePreview');

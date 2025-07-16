@@ -22,13 +22,13 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('beranda', BerandaController::class);
     // lokasi
     Route::resource('lokasi', LokasiController::class);
-    // order
-    Route::resource('order', OrderController::class);
     // pembayaran
     Route::get('/pembayaran/{id}/edit-user', [PembayaranController::class, 'editUser'])->name('pembayaran.edit_user');
     Route::put('/pembayaran/{id}/edit-user', [PembayaranController::class, 'updateUser'])->name('pembayaran.update_user');
     Route::resource('pembayaran', PembayaranController::class);
     // pemesanan
+    Route::get('/pemesanan/order', [PemesananController::class, 'order'])->name('pemesanan.order');
+    Route::post('/pemesanan/order', [PemesananController::class, 'storeOrder'])->name('pemesanan.storeOrder');
     Route::get('/pemesanan/proses', [PemesananController::class, 'showProses'])->name('pemesanan.proses');
     Route::put('/pemesanan/update-status/{id}', [PemesananController::class, 'updateStatus'])->name('pemesanan.updateStatus');
     Route::get('/pemesanan/diterima', [PemesananController::class, 'showDiterima'])->name('pemesanan.diterima');

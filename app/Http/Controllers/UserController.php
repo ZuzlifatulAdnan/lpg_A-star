@@ -57,10 +57,13 @@ class UserController extends Controller
         $validatedData = $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:8',
-            'role' => 'required',
-            'nik' => 'required',
-            'image' => 'nullable|mimes:jpg,jpeg,png,gif'
+            'nik' => 'required|string|unique:users,nik',
+            'alamat' => 'nullable|string',
+            'no_hp' => 'nullable|string',
+            'role' => 'required|string',
+            'password' => 'required|min:8|confirmed',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif',
+            'verifikasi' => 'required|string',
         ]);
         // Handle the image upload if present
         $imagePath = null;
@@ -77,6 +80,9 @@ class UserController extends Controller
             'role' => $validatedData['role'],
             'nik' => $validatedData['nik'],
             'image' => $imagePath, // Store the image path if available
+            'alamat' => $validatedData['alamat'],
+            'no_hp' => $validatedData['no_hp'],
+            'verifikasi' => $validatedData['verifikasi'],
         ]);
 
         //jika proses berhsil arahkan kembali ke halaman users dengan status success
@@ -101,12 +107,15 @@ class UserController extends Controller
     {
         // Validate the form data
         $request->validate([
-            'name' => 'required',
-            'email' => 'required|email|unique:users,email,' . $user->id, // Exclude current user email
-            'password' => 'nullable|min:8', // Password should be nullable
-            'role' => 'required',
-            'nik' => 'required',
-            'image' => 'nullable|mimes:jpg,jpeg,png,gif'
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'nik' => 'required|string|unique:users,nik,' . $user->id,
+            'alamat' => 'nullable|string',
+            'no_hp' => 'nullable|string',
+            'role' => 'required|string',
+            'password' => 'nullable|min:8|confirmed',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,gif',
+            'verifikasi' => 'required|string',
         ]);
 
         // Update the user data
@@ -114,7 +123,10 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
-            'nik' => $request->nik
+            'nik' => $request->nik,
+            'alamat' => $request->alamat,
+            'no_hp' => $request->no_hp,
+            'verifikasi' => $request->verifikasi,
         ]);
 
         if (!empty($request->password)) {
@@ -154,4 +166,10 @@ class UserController extends Controller
         $user->delete();
         return Redirect::route('user.index')->with('success', 'User ' . $user->name . ' berhasil di hapus.');
     }
+    public function show(User $user)
+    {
+        $type_menu = 'user';
+        return view('pages.user.show', compact('user', 'type_menu'));
+    }
+
 }
