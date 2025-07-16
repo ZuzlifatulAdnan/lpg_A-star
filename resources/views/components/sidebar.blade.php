@@ -37,7 +37,7 @@
                     <li class="sidebar-item {{ $type_menu == 'order' ? 'active' : '' }}">
                         <a href="{{ route('pemesanan.order') }}" class='sidebar-link'>
                             <i class="bi bi-basket"></i>
-                            <span>Order</span>
+                            <span>Pemesanan</span>
                         </a>
                     </li>
 
