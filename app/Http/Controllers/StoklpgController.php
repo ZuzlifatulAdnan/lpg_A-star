@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Redirect;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class StoklpgController extends Controller
@@ -20,6 +21,8 @@ class StoklpgController extends Controller
         $search = $request->input('search');
         $jenis = $request->input('jenis_pemilik');
 
+        $user = Auth::user();
+
         $query = stok_lpg::query()
             ->select(
                 'user_id',
@@ -30,14 +33,36 @@ class StoklpgController extends Controller
             ->with('user')
             ->groupBy('user_id');
 
-        if ($search) {
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%');
-            });
-        }
+        if ($user->role === 'Admin') {
+            if ($search) {
+                $query->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
+                });
+            }
 
-        if ($jenis) {
-            $query->where('jenis_pemilik', $jenis);
+            if ($jenis) {
+                $query->where('jenis_pemilik', $jenis);
+            }
+        } elseif ($user->role === 'Pangkalan') {
+            // Ambil lokasi milik user
+            $lokasi = lokasi::where('user_id', $user->id)->first(); // pakai first() karena 1 user = 1 lokasi
+
+            if ($lokasi) {
+                $query->where('lokasi_id', $lokasi->id);
+            }
+
+            if ($search) {
+                $query->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%');
+                });
+            }
+
+            if ($jenis) {
+                $query->where('jenis_pemilik', $jenis);
+            }
+        } else {
+            // Untuk role lain, bisa disesuaikan atau kosongkan
+            $query->whereRaw('1 = 0'); // supaya tidak ada data ditampilkan
         }
 
         $stokUsers = $query->paginate(10)->withQueryString();
@@ -57,9 +82,21 @@ class StoklpgController extends Controller
     {
         $type_menu = 'stok_lpg';
 
-        // ambil semua user & lokasi untuk pilihan dropdown
-        $users = User::all();
-        $lokasi = lokasi::all();
+        $users = collect();
+        $lokasi = collect();
+        $user = Auth::user();
+
+        if ($user->role === 'Pangkalan') {
+            // Ambil semua user dengan role Pelanggan
+            $users = User::where('role', 'Pelanggan')->get();
+
+            // Ambil lokasi milik user yang sedang login (pangkalan)
+            $lokasi = lokasi::where('user_id', $user->id)->get();
+        } elseif ($user->role === 'Admin') {
+            // Jika admin, ambil semua user dan lokasi
+            $users = User::all();
+            $lokasi = lokasi::all();
+        }
 
         // arahkan ke file pages/stok/create.blade.php
         return view('pages.stok.create', compact('type_menu', 'users', 'lokasi'));
@@ -103,8 +140,21 @@ class StoklpgController extends Controller
         $type_menu = 'stok_lpg';
 
         $stok = stok_lpg::findOrFail($id);
-        $users = User::all();
-        $lokasi = lokasi::all();
+        $users = collect();
+        $lokasi = collect();
+        $user = Auth::user();
+
+        if ($user->role === 'Pangkalan') {
+            // Ambil semua user dengan role Pelanggan
+            $users = User::where('role', 'Pelanggan')->get();
+
+            // Ambil lokasi milik user yang sedang login (pangkalan)
+            $lokasi = lokasi::where('user_id', $user->id)->get();
+        } elseif ($user->role === 'Admin') {
+            // Jika admin, ambil semua user dan lokasi
+            $users = User::all();
+            $lokasi = lokasi::all();
+        }
 
         return view('pages.stok.edit', compact('type_menu', 'stok', 'users', 'lokasi'));
     }
@@ -160,22 +210,5 @@ class StoklpgController extends Controller
             ->where('user_id', $user_id)->paginate(10)->withQueryString();
 
         return view('pages.stok.show', compact('type_menu', 'user', 'stokList'));
-    }
-    public function resetOtomatis()
-    {
-        $today = now()->format('Y-m-d');
-        $awalBulan = now()->startOfMonth()->format('Y-m-d');
-
-        if ($today === $awalBulan && !Cache::has("stok_reset_{$today}")) {
-            stok_lpg::query()->update(['jumlah' => 30]);
-            Cache::put("stok_reset_{$today}", true, now()->addHours(24));
-            \Log::info("Reset stok otomatis ke 30 pada {$today}");
-        }
-    }
-
-    public function resetManual()
-    {
-        stok_lpg::query()->update(['jumlah' => 30]);
-        return back()->with('success', 'Stok LPG berhasil direset manual ke 30.');
     }
 }

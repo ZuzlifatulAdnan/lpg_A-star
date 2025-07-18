@@ -27,6 +27,7 @@ class User extends Authenticatable
         'alamat',
         'no_hp',
         'verifikasi',
+        'ktp',
     ];
 
     /**

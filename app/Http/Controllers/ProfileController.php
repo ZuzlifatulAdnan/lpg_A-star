@@ -27,6 +27,7 @@ class ProfileController extends Controller
     public function update(Request $request, User $user)
     {
         $image = $request->file('file');
+        $ktp = $request->file('ktp');
 
         $validate = $request->validate([
             'name' => 'required|string|max:255',
@@ -35,6 +36,7 @@ class ProfileController extends Controller
             'alamat' => 'nullable|string',
             'no_hp' => 'nullable|string',
             'file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'ktp' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
 
         ]);
 
@@ -51,7 +53,7 @@ class ProfileController extends Controller
             $path = time() . '.' . $image->getClientOriginalExtension();
             $image->move('img/user/', $path);
 
-            if ($user->foto) {
+            if ($user->image) {
                 $oldImagePath = 'img/user/' . $user->foto;
                 if (file_exists($oldImagePath)) {
                     unlink($oldImagePath);
@@ -60,6 +62,22 @@ class ProfileController extends Controller
 
             $user->update([
                 'image' => $path
+            ]);
+        }
+        if ($ktp) {
+
+            $path = time() . '.' . $ktp->getClientOriginalExtension();
+            $ktp->move('img/user/ktp/', $path);
+
+            if ($user->ktp) {
+                $oldImagePath = 'img/user/ktp/' . $user->ktp;
+                if (file_exists($oldImagePath)) {
+                    unlink($oldImagePath);
+                }
+            }
+
+            $user->update([
+                'ktp' => $path
             ]);
         }
 

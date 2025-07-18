@@ -35,6 +35,14 @@
                                     <a href="{{ route('profile.index') }}" class="btn btn-warning mt-2 btn-block">
                                         Profile
                                     </a>
+                                    {{-- Tampilkan gambar KTP saat ini --}}
+                                    @if (Auth::user()->ktp)
+                                        <div class="mt-4">
+                                            <h6 class="text-muted">Gambar KTP</h6>
+                                            <img src="{{ asset('img/user/ktp/' . Auth::user()->ktp) }}" alt="Gambar KTP"
+                                                class="img-fluid border rounded" style="max-height: 250px;">
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -104,6 +112,20 @@
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
+                                    <div class="form-group">
+                                        <label for="ktp">Gambar KTP</label>
+                                        <input type="file" name="ktp" id="ktp"
+                                            class="form-control @error('ktp') is-invalid @enderror" accept="image/*"
+                                            onchange="previewImage(event, 'ktpPreview')">
+                                        @error('ktp')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+
+                                        <div class="mt-2">
+                                            <img id="ktpPreview" src="#" alt="Preview Gambar KTP"
+                                                style="display: none; max-height: 150px;" class="img-thumbnail">
+                                        </div>
+                                    </div>
 
                                     <div class="form-group">
                                         <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
@@ -121,13 +143,14 @@
 
 @push('scripts')
     <script>
-        function previewImage(event) {
-            const preview = document.getElementById('imagePreview');
+        function previewImage(event, previewId) {
+            const preview = document.getElementById(previewId);
             const file = event.target.files[0];
             const reader = new FileReader();
 
             reader.onload = function(e) {
                 preview.src = e.target.result;
+                preview.style.display = 'block';
             }
 
             if (file) {

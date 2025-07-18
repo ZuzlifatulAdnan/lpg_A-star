@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('alamat')->nullable();
             $table->string('no_hp')->nullable();
             $table->string('verifikasi')->nullable();
+            $table->string('ktp')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

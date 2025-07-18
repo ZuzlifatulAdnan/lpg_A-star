@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\lokasi;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 
 class LokasiController extends Controller
@@ -15,23 +16,32 @@ class LokasiController extends Controller
     public function index(Request $request)
     {
         $type_menu = 'lokasi';
+        $authUser = Auth::user();
 
-        // ambil data dari tabel lokasi berdasarkan nama jika terdapat request
         $keyword = trim($request->input('name'));
 
-        // Query lokasis dengan filter pencarian dan role
-        $lokasis = lokasi::when($keyword, function ($query, $name) {
-            $query->where('nama_usaha', 'like', '%' . $name . '%');
-        })
-            ->latest()
-            ->paginate(10);
+        // Query awal
+        $lokasis = lokasi::query();
 
-        // Tambahkan parameter query ke pagination
+        // Jika user adalah pangkalan, filter berdasarkan user_id
+        if ($authUser->role == 'Pangkalan') {
+            $lokasis->where('user_id', $authUser->id);
+        }
+
+        // Filter berdasarkan nama usaha jika keyword tersedia
+        if (!empty($keyword)) {
+            $lokasis->where('nama_usaha', 'like', '%' . $keyword . '%');
+        }
+
+        // Urutkan dan paginasi
+        $lokasis = $lokasis->latest()->paginate(10);
+
+        // Tambahkan parameter pencarian ke pagination
         $lokasis->appends(['name' => $keyword]);
 
-        // arahkan ke file pages/lokasis/index.blade.php
         return view('pages.lokasi.index', compact('type_menu', 'lokasis'));
     }
+
 
     /**
      * Show the form for creating a new resource.
@@ -50,7 +60,6 @@ class LokasiController extends Controller
      */
     public function store(Request $request)
     {
-        // validasi data dari form tambah lokasi
         $validatedData = $request->validate([
             'user_id' => 'required',
             'jenis_usaha' => 'required',
@@ -66,7 +75,7 @@ class LokasiController extends Controller
             'nama_usaha' => $validatedData['nama_usaha'],
             'alamat' => $validatedData['alamat'],
             'latitude' => $validatedData['latitude'],
-            'longitude' => $validatedData['longitude'], // Store the image path if available
+            'longitude' => $validatedData['longitude'],
         ]);
 
         //jika proses berhsil arahkan kembali ke halaman lokasis dengan status success
@@ -79,39 +88,72 @@ class LokasiController extends Controller
     public function edit(lokasi $lokasi)
     {
         $type_menu = 'lokasi';
-        $users = User::all();
+        $authUser = Auth::user();
 
-        // arahkan ke file pages/lokasis/edit
+        // Jika role adalah admin, tampilkan semua user
+        if ($authUser->role === 'Admin') {
+            $users = User::all();
+        }
+        // Jika role adalah pangkalan atau pengecer, hanya tampilkan user yang sedang login
+        else {
+            $users = collect([$authUser]); // gunakan collection agar kompatibel di view
+        }
+
         return view('pages.lokasi.edit', compact('lokasi', 'type_menu', 'users'));
     }
+
+
 
     /**
      * Show the form for editing the specified resource.
      */
     public function update(Request $request, lokasi $lokasi)
     {
-        // Validate the form data
-        $request->validate([
-            'user_id' => 'required',
-            'jenis_usaha' => 'required',
-            'nama_usaha' => 'required',
-            'alamat' => 'required',
-            'latitude' => 'required',
-            'longitude' => 'required'
-        ]);
+        $authUser = Auth::user();
 
-        // Update the lokasi data
-        $lokasi->update([
-            'user_id' => $request->user_id,
-            'jenis_usaha' => $request->jenis_usaha,
-            'nama_usaha' => $request->nama_usaha,
-            'alamat' => $request->alamat,
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-        ]);
+        if ($authUser->role === 'Admin') {
+            // Validasi untuk Admin
+            $request->validate([
+                'user_id' => 'required',
+                'jenis_usaha' => 'required',
+                'nama_usaha' => 'required',
+                'alamat' => 'required',
+                'latitude' => 'required',
+                'longitude' => 'required'
+            ]);
 
+            // Update data lokasi untuk Admin
+            $lokasi->update([
+                'user_id' => $request->user_id,
+                'jenis_usaha' => $request->jenis_usaha,
+                'nama_usaha' => $request->nama_usaha,
+                'alamat' => $request->alamat,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+            ]);
 
-        return Redirect::route('lokasi.index')->with('success', 'lokasi ' . $lokasi->nama_usaha . ' berhasil diubah.');
+        } elseif (in_array($authUser->role, ['Pangkalan', 'Pengecer'])) {
+            // Validasi untuk Pangkalan dan Pengecer
+            $request->validate([
+                'jenis_usaha' => 'required',
+                'nama_usaha' => 'required',
+                'alamat' => 'required',
+                'latitude' => 'required',
+                'longitude' => 'required'
+            ]);
+
+            // Update data lokasi untuk Pangkalan dan Pengecer
+            $lokasi->update([
+                'user_id' => $authUser->id,
+                'jenis_usaha' => $request->jenis_usaha,
+                'nama_usaha' => $request->nama_usaha,
+                'alamat' => $request->alamat,
+                'latitude' => $request->latitude,
+                'longitude' => $request->longitude,
+            ]);
+        }
+
+        return Redirect::route('lokasi.index')->with('success', 'Lokasi ' . $lokasi->nama_usaha . ' berhasil diubah.');
     }
 
     /**

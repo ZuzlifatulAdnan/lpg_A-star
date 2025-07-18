@@ -64,6 +64,7 @@ class UserController extends Controller
             'password' => 'required|min:8|confirmed',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif',
             'verifikasi' => 'required|string',
+            'ktp' => 'nullable|image|mimes:jpg,jpeg,png,gif',
         ]);
         // Handle the image upload if present
         $imagePath = null;
@@ -71,6 +72,12 @@ class UserController extends Controller
             $image = $request->file('image');
             $imagePath = uniqid() . '.' . $image->getClientOriginalExtension();
             $image->move('img/user/', $imagePath);
+        }
+        $ktpPath = null;
+         if ($request->hasFile('ktp')) {
+            $ktp = $request->file('ktp');
+            $ktpPath = uniqid() . '.' . $ktp->getClientOriginalExtension();
+            $ktp->move('img/user/ktp/', $ktpPath);
         }
         //masukan data kedalam tabel users
         User::create([
@@ -83,6 +90,7 @@ class UserController extends Controller
             'alamat' => $validatedData['alamat'],
             'no_hp' => $validatedData['no_hp'],
             'verifikasi' => $validatedData['verifikasi'],
+            'ktp' => $ktpPath, 
         ]);
 
         //jika proses berhsil arahkan kembali ke halaman users dengan status success
@@ -116,6 +124,7 @@ class UserController extends Controller
             'password' => 'nullable|min:8|confirmed',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif',
             'verifikasi' => 'required|string',
+            'ktp' => 'nullable|image|mimes:jpg,jpeg,png,gif',
         ]);
 
         // Update the user data
@@ -151,6 +160,23 @@ class UserController extends Controller
                 'image' => $path
             ]);
         }
+
+        if ($request->hasFile('ktp')) {
+            // Hapus gambar lama jika ada
+            if ($user->ktp && file_exists(public_path('img/user/ktp/' . $user->ktp))) {
+                unlink(public_path('img/user/ktp/' . $user->imktpage));
+            }
+
+            // Upload gambar baru
+            $image = $request->file('ktp');
+            $path = uniqid() . '.' . $image->getClientOriginalExtension();
+            $image->move(public_path('img/user/ktp/'), $path);
+
+            // Simpan path gambar baru
+            $user->update([
+                'ktp' => $path
+            ]);
+        }
         return Redirect::route('user.index')->with('success', 'User ' . $user->name . ' berhasil diubah.');
     }
 
@@ -162,6 +188,9 @@ class UserController extends Controller
         // Hapus bukti bayar jika ada
         if ($user->image && file_exists(public_path('img/user/' . $user->image))) {
             unlink(public_path('img/user/' . $user->image));
+        }
+        if ($user->ktp && file_exists(public_path('img/user/ktp/' . $user->ktp))) {
+            unlink(public_path('img/user/ktp/' . $user->ktp));
         }
         $user->delete();
         return Redirect::route('user.index')->with('success', 'User ' . $user->name . ' berhasil di hapus.');

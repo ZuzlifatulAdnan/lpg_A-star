@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\lokasi;
 use App\Models\pembayaran;
 use App\Models\pemesanan;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PembayaranController extends Controller
 {
@@ -16,6 +19,8 @@ class PembayaranController extends Controller
         $status = $request->input('status');
         $bulan = $request->input('bulan');
         $tahun = $request->input('tahun');
+
+        $authUser = Auth::user();
 
         $pembayarans = pembayaran::with(['pemesanan.user'])
             ->when($keyword, function ($query, $keyword) {
@@ -29,19 +34,28 @@ class PembayaranController extends Controller
                 $query->where('status', $status);
             })
             ->when($bulan, function ($query, $bulan) {
-                $query->whereHas('pembayaran', function ($q) use ($bulan) {
-                    $q->whereMonth('tanggal_bayar', $bulan);
-                });
+                $query->whereMonth('tanggal_bayar', $bulan);
             })
             ->when($tahun, function ($query, $tahun) {
-                $query->whereHas('pembayaran', function ($q) use ($tahun) {
-                    $q->whereYear('tanggal_bayar', $tahun);
-                });
-            })
-            ->latest()
-            ->paginate(10);
+                $query->whereYear('tanggal_bayar', $tahun);
+            });
 
-        $pembayarans->appends($request->all());
+        // Filter jika user adalah Pangkalan
+        if ($authUser->role === 'Pangkalan') {
+            $lokasi = lokasi::where('user_id', $authUser->id)->first();
+
+            if ($lokasi) {
+                // Filter hanya pemesanan dari pelanggan di lokasi ini
+                $pembayarans = $pembayarans->whereHas('pemesanan', function ($q) use ($lokasi) {
+                    $q->where('lokasi_id', $lokasi->id)
+                        ->whereHas('user', function ($qu) {
+                            $qu->where('role', 'Pelanggan');
+                        });
+                });
+            }
+        }
+
+        $pembayarans = $pembayarans->latest()->paginate(10)->appends($request->all());
 
         return view('pages.pembayaran.index', [
             'type_menu' => $type_menu,
@@ -51,11 +65,32 @@ class PembayaranController extends Controller
     public function create()
     {
         $type_menu = 'pembayaran';
-        $pemesanan_list = pemesanan::with('user')->get();
+        $authUser = Auth::user();
+
+        // Inisialisasi default
+        $pemesanan_list = collect();
+
+        // Cek jika user adalah role 'Pangkalan'
+        if ($authUser->role === 'Pangkalan') {
+            // Ambil lokasi berdasarkan user
+            $lokasi = lokasi::where('user_id', $authUser->id)->first();
+
+            if ($lokasi) {
+                // Ambil pemesanan berdasarkan lokasi
+                $pemesanan_list = pemesanan::where('lokasi_id', $lokasi->id)
+                    ->whereHas('user', function ($query) {
+                        $query->where('role', 'Pelanggan');
+                    })
+                    ->with('user')
+                    ->get();
+            }
+        } elseif ($authUser->role === 'Admin') {
+            // Jika admin, ambil semua pemesanan
+            $pemesanan_list = pemesanan::with('user')->get();
+        }
 
         return view('pages.pembayaran.create', compact('type_menu', 'pemesanan_list'));
     }
-
     public function store(Request $request)
     {
         // Validasi data dari form
@@ -93,17 +128,36 @@ class PembayaranController extends Controller
         return redirect()->route('pembayaran.index')
             ->with('success', 'Pembayaran dengan No Pembayaran ' . $pembayaran->no_pembayaran . ' berhasil ditambahkan.');
     }
-
-
     public function edit($id)
     {
         $type_menu = 'pembayaran';
+        $authUser = Auth::user();
+
         $pembayaran = Pembayaran::findOrFail($id);
-        $pemesanan_list = pemesanan::with('user')->get();
+
+        $pemesanan_list = collect(); // Default kosong
+
+        if ($authUser->role === 'Pangkalan') {
+            $lokasi = lokasi::where('user_id', $authUser->id)->first();
+
+            if ($lokasi) {
+                $pemesanan_list = pemesanan::where('lokasi_id', $lokasi->id)
+                    ->whereHas('user', function ($query) {
+                        $query->where('role', 'Pelanggan');
+                    })
+                    ->with('user')
+                    ->get();
+            }
+        } elseif ($authUser->role === 'Admin') {
+            $pemesanan_list = pemesanan::whereHas('user', function ($query) {
+                $query->where('role', 'Pelanggan');
+            })
+                ->with('user')
+                ->get();
+        }
 
         return view('pages.pembayaran.edit', compact('type_menu', 'pembayaran', 'pemesanan_list'));
     }
-
     public function update(Request $request, $id)
     {
         $validatedData = $request->validate([

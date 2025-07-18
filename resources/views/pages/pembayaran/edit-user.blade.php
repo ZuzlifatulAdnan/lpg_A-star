@@ -3,6 +3,7 @@
 @section('title', 'Edit Pembayaran')
 
 @section('main')
+@if (Auth::user()->role == 'Pelanggan')
     <div id="main-content">
         <div class="page-heading">
             <h3>Selesaikan Pembayaran: {{ $pemesanan->user->name }} - {{ $pemesanan->no_pemesanan }}</h3>

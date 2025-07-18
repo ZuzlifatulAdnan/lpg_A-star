@@ -17,14 +17,15 @@ class PemesananController extends Controller
     {
         $type_menu = 'pemesanan';
 
-        // Ambil filter dari request
         $keyword = trim($request->input('search'));
         $status = $request->input('status');
         $bulan = $request->input('bulan');
         $tahun = $request->input('tahun');
 
-        // Query pemesanans dengan filter yang diterapkan
-        $pemesanans = pemesanan::with('user')
+        $authUser = Auth::user();
+
+        // Mulai query dasar
+        $pemesanans = Pemesanan::with('user')
             ->when($keyword, function ($query) use ($keyword) {
                 $query->where(function ($q) use ($keyword) {
                     $q->whereHas('user', function ($q2) use ($keyword) {
@@ -41,26 +42,51 @@ class PemesananController extends Controller
             })
             ->when($tahun, function ($query, $tahun) {
                 $query->whereYear('created_at', $tahun);
-            })
-            ->latest()
-            ->paginate(10);
+            });
 
-        // Tambahkan parameter query ke pagination
-        $pemesanans->appends([
+        // Filter jika user adalah Pangkalan
+        if ($authUser->role === 'Pangkalan') {
+            $lokasi = Lokasi::where('user_id', $authUser->id)->first();
+
+            if ($lokasi) {
+                $pemesanans = $pemesanans
+                    ->where('lokasi_id', $lokasi->id)
+                    ->whereHas('user', function ($q) {
+                        $q->where('role', 'Pelanggan');
+                    });
+            }
+        }
+
+        // Pagination & query string
+        $pemesanans = $pemesanans->latest()->paginate(10)->appends([
             'search' => $keyword,
             'status' => $status,
             'bulan' => $bulan,
             'tahun' => $tahun,
         ]);
 
-        // Arahkan ke view (misalnya: resources/views/pages/pemesanans/index.blade.php)
         return view('pages.pemesanan.index', compact('type_menu', 'pemesanans'));
     }
+
+
     public function create()
     {
         $type_menu = 'pemesanan';
-        $users = User::all();
-        $lokasis = Lokasi::all();
+
+        $user = Auth::user();
+
+        if ($user->role === 'Admin') {
+            // Jika role Admin, ambil semua user dan semua lokasi
+            $users = User::all();
+            $lokasis = lokasi::all();
+        } elseif ($user->role === 'Pangkalan') {
+            // Jika role Pangkalan, ambil user dan lokasi berdasarkan user yang login
+            $users = User::where('role', 'Pelanggan')->get();
+            $lokasis = lokasi::where('user_id', $user->id)->get();
+        } else {
+            // Role lainnya tidak diperbolehkan mengakses
+            abort(403, 'Unauthorized action.');
+        }
 
         return view('pages.pemesanan.create', compact('type_menu', 'users', 'lokasis'));
     }
@@ -120,22 +146,35 @@ class PemesananController extends Controller
         // Buat data pembayaran awal
         $pembayaran = Pembayaran::create([
             'no_pembayaran' => $no_pembayaran,
-            'order_id' => $pemesanan->id,
+            'pemesanan_id' => $pemesanan->id,
             'metode_pembayaran' => 'Belum dipilih',
-            'jumlah_dibayar' => $pemesanan->total_biaya,
+            'jumlah_dibayar' => $pemesanan->total_harga,
             'status' => 'Menunggu Pembayaran',
         ]);
 
         return redirect()->route('pemesanan.index')
-            ->with('success', 'Pemesanan ' . $pemesanan->no_pemesanan . ' berhasil ditambahkan. 
-            dan Pembayaran sudah dibuatkan dengan No Pembayaran ' . $pembayaran->no_pembayaran);
+            ->with('success', 'Pemesanan ' . $pemesanan->no_pemesanan . ' berhasil ditambahkan');
     }
     public function edit($id)
     {
         $type_menu = 'pemesanan';
+
+        // role admin
         $pemesanan = Pemesanan::findOrFail($id);
-        $users = User::all();
-        $lokasis = Lokasi::all();
+        $user = Auth::user();
+
+        if ($user->role === 'Admin') {
+            // Jika role Admin, ambil semua user dan semua lokasi
+            $users = User::all();
+            $lokasis = lokasi::all();
+        } elseif ($user->role === 'Pangkalan') {
+            // Jika role Pangkalan, ambil user dan lokasi berdasarkan user yang login
+            $users = User::where('role', 'Pelanggan')->get();
+            $lokasis = lokasi::where('user_id', $user->id)->get();
+        } else {
+            // Role lainnya tidak diperbolehkan mengakses
+            abort(403, 'Unauthorized action.');
+        }
 
         return view('pages.pemesanan.edit', compact('pemesanan', 'users', 'lokasis', 'type_menu'));
     }
@@ -299,6 +338,8 @@ class PemesananController extends Controller
     public function showDiterima(Request $request)
     {
         $type_menu = 'pemesanan';
+
+        $user = Auth::user();
         $query = pemesanan::with(['user', 'pembayaran'])
             ->where('status', 'Diterima');
 
@@ -310,6 +351,13 @@ class PemesananController extends Controller
                     ->orWhere('no_pemesanan', 'like', '%' . $request->q . '%');
             });
         }
+        // Filter lokasi untuk role Pangkalan
+        if ($user->role === 'Pangkalan') {
+            $lokasi = lokasi::where('user_id', $user->id)->first();
+            if ($lokasi) {
+                $query->where('lokasi_id', $lokasi->id);
+            }
+        }
 
         $pemesanans = $query->latest()->paginate(10)->withQueryString();
 
@@ -320,10 +368,11 @@ class PemesananController extends Controller
             'type_menu' => $type_menu,
         ]);
     }
-
     public function showProses(Request $request)
     {
         $type_menu = 'pemesanan';
+        $user = Auth::user();
+
         $query = pemesanan::with(['user', 'pembayaran'])
             ->where('status', 'Diproses');
 
@@ -334,6 +383,14 @@ class PemesananController extends Controller
                 })
                     ->orWhere('no_pemesanan', 'like', '%' . $request->q . '%');
             });
+        }
+
+        // Filter lokasi untuk role Pangkalan
+        if ($user->role === 'Pangkalan') {
+            $lokasi = lokasi::where('user_id', $user->id)->first();
+            if ($lokasi) {
+                $query->where('lokasi_id', $lokasi->id);
+            }
         }
 
         $pemesanans = $query->latest()->paginate(10)->withQueryString();

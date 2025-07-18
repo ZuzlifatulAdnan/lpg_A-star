@@ -67,7 +67,7 @@
                                         <span>NIK</span>
                                         <span class="fw-bold">{{ Auth::user()->nik }}</span>
                                     </li>
-                                     <li class="list-group-item d-flex justify-content-between">
+                                    <li class="list-group-item d-flex justify-content-between">
                                         <span>No Handphone</span>
                                         <span class="fw-bold">{{ Auth::user()->no_hp }}</span>
                                     </li>
@@ -79,7 +79,7 @@
                                     <li class="list-group-item d-flex justify-content-between">
                                         <span>Verifikasi</span>
                                         <span>
-                                            @if (Auth::user()->verifikasi=='Verifikasi')
+                                            @if (Auth::user()->verifikasi == 'Verifikasi')
                                                 <span class="badge bg-success"><i class="bi bi-check-circle"></i>
                                                     Verifikasi</span>
                                             @else
@@ -87,6 +87,16 @@
                                                     Verifikasi</span>
                                             @endif
                                         </span>
+                                    </li>
+                                    <li class="list-group-item">
+                                        <span class="fw-bold d-block mb-2">Foto KTP</span>
+                                        @if (Auth::user()->ktp)
+                                            <img src="{{ asset('img/user/ktp/' . Auth::user()->ktp) }}"
+                                                alt="Foto KTP {{ Auth::user()->name }}" class="img-fluid rounded shadow-sm"
+                                                style="max-height: 250px;">
+                                        @else
+                                            <p class="text-muted">Belum mengunggah KTP.</p>
+                                        @endif
                                     </li>
                                 </ul>
                             </div>
