@@ -64,7 +64,7 @@
                         </li>
                     @elseif ($role === 'Pelanggan')
                         <li class="sidebar-item {{ $type_menu == 'pemesanan' ? 'active' : '' }}">
-                            <a href="{{ route('pemesanan.index') }}" class='sidebar-link'>
+                            <a href="{{ route('pemesanan.order') }}" class='sidebar-link'>
                                 <i class="bi bi-receipt"></i>
                                 <span>Pemesanan</span>
                             </a>
