@@ -26,7 +26,11 @@ class TokoController extends Controller
             };
         }
 
-        if (!$startLat || !$startLng || $errorMessage) {
+        if (
+            !$startLat || !$startLng ||
+            !is_numeric($startLat) || !is_numeric($startLng) ||
+            $errorMessage
+        ) {
             return view('pages.toko.index', [
                 'type_menu' => $type_menu,
                 'errorMessage' => $errorMessage
@@ -34,9 +38,8 @@ class TokoController extends Controller
         }
 
         $start = 'User';
-        $coords[$start] = [(float)$startLat, (float)$startLng];
+        $coords[$start] = [(float) $startLat, (float) $startLng];
 
-        // Ambil toko dari DB
         $lokasis = Lokasi::whereNotNull('latitude')->whereNotNull('longitude')->get();
 
         if ($lokasis->isEmpty()) {
@@ -47,34 +50,40 @@ class TokoController extends Controller
         }
 
         $graph = [
-            $start => [] // User → semua toko
+            $start => []
         ];
 
         foreach ($lokasis as $lokasi) {
             $nodeName = 'Toko_' . $lokasi->id;
-            $coords[$nodeName] = [(float)$lokasi->latitude, (float)$lokasi->longitude];
-
-            // tambahkan edge dari user ke setiap toko (karena tidak ada node jalan)
+            $coords[$nodeName] = [(float) $lokasi->latitude, (float) $lokasi->longitude];
             $graph[$start][$nodeName] = $this->haversine(
                 $coords[$start][0],
                 $coords[$start][1],
                 $coords[$nodeName][0],
                 $coords[$nodeName][1]
             );
-
-            // node toko tanpa neighbor
             $graph[$nodeName] = [];
         }
 
-        // tentukan goal → toko dengan f terkecil
         $best = null;
         $minCost = INF;
         $bestPath = null;
 
+        $totalJarakSemua = 0;
+        $daftarJarak = [];
+
         foreach ($lokasis as $lokasi) {
             $goal = 'Toko_' . $lokasi->id;
-
             $result = $this->aStar($graph, $coords, $start, $goal);
+
+            if ($result && $result['cost'] > 0) {
+                $totalJarakSemua += $result['cost'];
+                $daftarJarak[] = [
+                    'lokasi' => $lokasi,
+                    'jarak' => $result['cost'],
+                    'path' => $result['path']
+                ];
+            }
 
             if ($result && $result['cost'] < $minCost) {
                 $minCost = $result['cost'];
@@ -82,6 +91,8 @@ class TokoController extends Controller
                 $bestPath = $result['path'];
             }
         }
+
+        usort($daftarJarak, fn($a, $b) => $a['jarak'] <=> $b['jarak']);
 
         if (!$best) {
             $errorMessage = 'Tidak ditemukan rute ke toko.';
@@ -92,21 +103,19 @@ class TokoController extends Controller
             'path' => $bestPath ?? null,
             'cost' => $minCost !== INF ? $minCost : null,
             'errorMessage' => $errorMessage,
-            'nearest' => $best
+            'nearest' => $best,
+            'daftarJarak' => $daftarJarak,
+            'totalJarakSemua' => $totalJarakSemua,
         ]);
     }
 
     public function aStar($graph, $coords, $start, $goal)
     {
-        $open = [];
+        $open = [$start];
         $closed = [];
-        $g = [];
-        $f = [];
+        $g = [$start => 0];
+        $f = [$start => $this->heuristic($coords[$start], $coords[$goal])];
         $cameFrom = [];
-
-        $open[] = $start;
-        $g[$start] = 0;
-        $f[$start] = $this->heuristic($coords[$start], $coords[$goal]);
 
         while (!empty($open)) {
             usort($open, fn($a, $b) => $f[$a] <=> $f[$b]);
@@ -118,16 +127,14 @@ class TokoController extends Controller
                     $current = $cameFrom[$current];
                     array_unshift($path, $current);
                 }
-                return [
-                    'path' => $path,
-                    'cost' => $g[$goal]
-                ];
+                return ['path' => $path, 'cost' => $g[$goal]];
             }
 
             $closed[] = $current;
 
             foreach ($graph[$current] as $neighbor => $cost) {
-                if (in_array($neighbor, $closed)) continue;
+                if (in_array($neighbor, $closed))
+                    continue;
 
                 $tentative_g = $g[$current] + $cost;
 
@@ -154,7 +161,6 @@ class TokoController extends Controller
         $lon2 = $b[1];
 
         $earthRadius = 6371;
-
         $dLat = deg2rad($lat2 - $lat1);
         $dLon = deg2rad($lon2 - $lon1);
 

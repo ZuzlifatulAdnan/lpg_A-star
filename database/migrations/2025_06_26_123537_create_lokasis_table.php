@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('alamat');
             $table->double('latitude');
             $table->double('longitude');
+            $table->string('stok_lpg')->nullable();
             $table->timestamps();
         });
     }

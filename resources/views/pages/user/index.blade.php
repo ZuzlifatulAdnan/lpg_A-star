@@ -31,7 +31,7 @@
                                     <div class="col-md-3">
                                         <select name="role" class="form-select" onchange="this.form.submit()">
                                             <option value="">-- Semua Role --</option>
-                                            @foreach (['Admin', 'Pelanggan', 'Pangkalan', 'Pengecer'] as $role)
+                                            @foreach (['Admin', 'Pelanggan', 'Pengecer'] as $role)
                                                 <option value="{{ $role }}"
                                                     {{ request('role') == $role ? 'selected' : '' }}>{{ $role }}
                                                 </option>

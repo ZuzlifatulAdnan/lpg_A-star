@@ -28,7 +28,7 @@
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="card-title mb-0">Daftar Lokasi</h5>
                             @if (Auth::user()->role == 'Admin')
-                                <a href="{{ route('lokasi.create') }}" class="btn btn-primary">Tambah Lokasi</a>
+                                <a href="{{ route('lokasi.create') }}" class="btn btn-primary">Tambah</a>
                             @endif
                         </div>
 

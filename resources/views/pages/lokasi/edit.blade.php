@@ -97,6 +97,14 @@
                                             <div class="text-danger small">{{ $message }}</div>
                                         @enderror
                                     </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label for="stok_lpg" class="form-label">Stok Lpg</label>
+                                        <input type="number" name="stok_lpg" class="form-control"
+                                            value="{{ $lokasi->stok_lpg }}" required>
+                                        @error('stok_lpg')
+                                            <div class="text-danger small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
 
                                     <!-- LAT / LNG -->
                                     <div class="col-md-6 mb-3">

@@ -94,39 +94,59 @@
                     @foreach ($stoks as $stok)
                         @php
                             $user = $stok->user;
-                            $nama = $user->name ?? '-';
-                            $nik = $user->nik ?? '';
+                            $nama = optional($user)->name ?? '-';
+                            $nik = optional($user)->nik ?? '';
                             $nik_sensored =
                                 strlen($nik) > 8
                                     ? substr($nik, 0, 4) . str_repeat('*', strlen($nik) - 8) . substr($nik, -4)
                                     : $nik;
                             $jumlah_stok = number_format($stok->jumlah ?? 0);
-                            $lokasi = $stok->lokasi->nama_usaha ?? '-';
+                            $lokasi = optional($stok->lokasi)->nama_usaha ?? '-';
                         @endphp
 
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card h-100 shadow-sm border-0">
-                                <div class="card-body">
-                                    <div class="d-flex align-items-center mb-3">
-                                        <div class="avatar bg-primary text-white me-3">
-                                            <i class="bi bi-person-fill fs-5"></i>
+                        @if (($stok->jumlah ?? 0) == 0)
+                            {{-- Kartu blok jika stok kosong --}}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div
+                                    class="card h-100 shadow-sm border-0 bg-light text-center d-flex flex-column justify-content-center">
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <i class="fa fa-box-open fa-2x text-danger"></i>
                                         </div>
-                                        <div>
-                                            <h6 class="mb-0">{{ $nama }}</h6>
-                                            <small class="text-muted">NIK: {{ $nik_sensored }}</small>
-                                        </div>
+                                        <h6 class="text-danger mb-2">Stok LPG Habis</h6>
+                                        <p class="text-muted small">Silakan cek toko lain yang memiliki stok tersedia.</p>
+                                        <a href="{{ route('toko.index') }}" class="btn btn-warning btn-sm">
+                                            <i class="fa fa-store"></i> Cek Toko Lain
+                                        </a>
                                     </div>
-                                    <p class="mb-1">
-                                        <i class="bi bi-geo-alt text-danger me-1"></i>
-                                        Lokasi: <strong>{{ $lokasi }}</strong>
-                                    </p>
-                                    <p class="mb-0">
-                                        <i class="bi bi-box-seam text-success me-1"></i>
-                                        Stok LPG: <strong>{{ $jumlah_stok }}</strong>
-                                    </p>
                                 </div>
                             </div>
-                        </div>
+                        @else
+                            {{-- Kartu stok normal --}}
+                            <div class="col-md-6 col-lg-4 mb-4">
+                                <div class="card h-100 shadow-sm border-0">
+                                    <div class="card-body">
+                                        <div class="d-flex align-items-center mb-3">
+                                            <div class="avatar bg-primary text-white me-3">
+                                                <i class="fa fa-user fs-5"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">{{ $nama }}</h6>
+                                                <small class="text-muted">NIK: {{ $nik_sensored }}</small>
+                                            </div>
+                                        </div>
+                                        <p class="mb-1">
+                                            <i class="bi bi-geo-alt text-danger me-1"></i>
+                                            Lokasi: <strong>{{ $lokasi }}</strong>
+                                        </p>
+                                        <p class="mb-0">
+                                            <i class="bi bi-box-seam text-success me-1"></i>
+                                            Stok LPG: <strong>{{ $jumlah_stok }}</strong>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     @endforeach
                 </div>
 

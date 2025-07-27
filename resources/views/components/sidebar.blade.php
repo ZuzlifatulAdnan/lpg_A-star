@@ -34,7 +34,7 @@
                     </li>
 
                     {{-- Admin dan Pengecer: Data Lokasi --}}
-                    @if (in_array($role, ['Admin', 'Pengecer', 'Pangkalan']))
+                    @if ($role == 'Admin')
                         <li class="sidebar-item {{ $type_menu == 'lokasi' ? 'active' : '' }}">
                             <a href="{{ route('lokasi.index') }}" class='sidebar-link'>
                                 <i class="bi bi-geo-alt-fill"></i>
@@ -44,7 +44,7 @@
                     @endif
 
                     {{-- Admin & Pangkalan & Pelanggan: Pemesanan --}}
-                    @if (in_array($role, ['Admin', 'Pangkalan']))
+                    @if ($role == 'Admin')
                         <li class="sidebar-item has-sub {{ $type_menu == 'pemesanan' ? 'active' : '' }}">
                             <a href="#" class='sidebar-link'>
                                 <i class="bi bi-receipt"></i>
@@ -72,7 +72,7 @@
                     @endif
 
                     {{-- Admin: Pembayaran --}}
-                    @if (in_array($role, ['Admin', 'Pangkalan']))
+                    @if ($role == 'Admin')
                         <li class="sidebar-item {{ $type_menu == 'pembayaran' ? 'active' : '' }}">
                             <a href="{{ route('pembayaran.index') }}" class='sidebar-link'>
                                 <i class="bi bi-wallet2"></i>
@@ -82,7 +82,7 @@
                     @endif
 
                     {{-- Admin & Pangkalan: Stok LPG --}}
-                    @if (in_array($role, ['Admin', 'Pangkalan']))
+                    @if ($role == 'Admin')
                         <li class="sidebar-item {{ $type_menu == 'stok' ? 'active' : '' }}">
                             <a href="{{ route('stok.index') }}" class='sidebar-link'>
                                 <i class="bi bi-box-seam"></i>
@@ -92,7 +92,7 @@
                     @endif
 
                     {{-- Admin, Pangkalan, Pengecer: Toko Terdekat --}}
-                    @if (in_array($role, ['Admin', 'Pangkalan', 'Pengecer']))
+                    @if (in_array($role, ['Admin', 'Pelanggan', 'Pengecer']))
                         <li class="sidebar-item {{ $type_menu == 'toko' ? 'active' : '' }}">
                             <a href="{{ route('toko.index') }}" class='sidebar-link'>
                                 <i class="bi bi-shop-window"></i>

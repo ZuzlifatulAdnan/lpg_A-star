@@ -15,6 +15,7 @@ class lokasi extends Model
         'alamat',
         'latitude',
         'longitude',
+        'stok_lpg',
     ];
     public function user()
     {

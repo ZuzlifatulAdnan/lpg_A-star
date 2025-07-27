@@ -404,8 +404,8 @@ class PemesananController extends Controller
     }
     public function order(Request $request)
     {
-        $type_menu = 'order';
-        $lokasis = Lokasi::all(); // atau query sesuai kebutuhan
+        $type_menu = 'pemesanan';
+        $lokasis = Lokasi::where('jenis_usaha', 'Pangkalan')->get();
         $lokasi_id = $request->lokasi_id;
 
         return view('pages.pemesanan.order', compact('type_menu', 'lokasis', 'lokasi_id'));

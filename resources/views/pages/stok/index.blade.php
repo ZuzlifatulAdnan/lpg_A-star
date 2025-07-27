@@ -8,14 +8,14 @@
 @endpush
 
 @section('main')
-    @if (Auth::user()->role == 'Admin' || Auth::user()->role == 'Pangkalan')
+    @if (Auth::user()->role == 'Admin')
         <div id="main-content">
             <div class="page-heading">
                 <div class="page-title">
                     <div class="row">
                         <div class="col-12 col-md-6 order-md-1 order-last">
                             <h3>Stok LPG</h3>
-                            <p class="text-subtitle text-muted">Halaman untuk melihat stok LPG per user</p>
+                            <p class="text-subtitle text-muted">Halaman untuk melihat dan mengelola data stok LPG</p>
                         </div>
                     </div>
 
@@ -25,21 +25,23 @@
                 <section class="section">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h4>Daftar Stok LPG per User</h4>
-                            <a href="{{ route('stok.create') }}" class="btn btn-primary">Tambah Stok</a>
+                            <h4>Daftar Stok LPG</h4>
+                            <div class="d-flex gap-2">
+                                 <form id="manualResetForm" action="{{ route('stok.manual') }}" method="POST" class="d-inline"
+                                    onsubmit="return confirm('Yakin ingin me-reset semua stok secara manual?')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-danger" title="Tambah stok otomatis untuk semua pelanggan hari ini">
+                                        <i class="fas fa-sync"></i> Reset Manual
+                                    </button>
+                                </form>
+
+                                <a href="{{ route('stok.create') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Tambah Stok
+                                </a>
+                            </div>
                         </div>
 
                         <div class="card-body">
-                            {{-- Tombol Reset Manual --}}
-                            <div class="mb-3">
-                                <form action="{{ route('stok.resetManual') }}" method="POST"
-                                    onsubmit="return confirm('Yakin reset stok LPG ke 30 untuk semua user & lokasi?')">
-                                    @csrf
-                                    <button type="submit" class="btn btn-danger">
-                                        <i class="fas fa-sync-alt"></i> Reset Stok Manual
-                                    </button>
-                                </form>
-                            </div>
                             {{-- Filter --}}
                             <form method="GET" class="row g-2 mb-4">
                                 <div class="col-md-4">
@@ -68,52 +70,47 @@
                                 </div>
                             </form>
 
-                            {{-- Table --}}
+                            {{-- Tabel --}}
                             <div class="table-responsive">
                                 <table class="table" id="table">
                                     <thead>
                                         <tr>
                                             <th>No</th>
                                             <th>Nama User</th>
-                                            <th class="text-center">Jenis Pemilik</th>
-                                            <th class="text-center">Total Jumlah</th>
+                                            <th>Jenis Pemilik</th>
+                                            <th>Jumlah</th>
+                                            <th>Lokasi Usaha</th>
                                             <th class="text-center">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         @forelse ($stokUsers as $stok)
-                                            @php
-                                                $user = $stok->user;
-
-                                                $lokasiAll = \App\Models\lokasi::where('user_id', $stok->user_id)
-                                                    ->pluck('nama_usaha')
-                                                    ->unique();
-
-                                                $lokasiList = $lokasiAll->take(3)->toArray();
-                                                $lokasiText = implode(', ', $lokasiList);
-
-                                                if ($lokasiAll->count() > 3) {
-                                                    $lokasiText .= ' …';
-                                                }
-                                            @endphp
                                             <tr>
                                                 <td class="text-center">
                                                     {{ ($stokUsers->currentPage() - 1) * $stokUsers->perPage() + $loop->iteration }}
                                                 </td>
-                                                <td>{{ $user->name ?? '-' }}</td>
-                                                <td class="text-center">{{ ucfirst($stok->jenis_pemilik) }}</td>
-                                                <td class="text-center">{{ $stok->total_jumlah }}</td>
+                                                <td>{{ $stok->user->name ?? '-' }}</td>
+                                                <td>{{ ucfirst($stok->jenis_pemilik) }}</td>
+                                                <td>{{ number_format($stok->jumlah) }}</td>
+                                                <td>{{ $stok->lokasi->nama_usaha ?? '-' }}</td>
                                                 <td class="text-center">
-                                                    <a href="{{ route('stok.show', $stok->user_id) }}"
-                                                        class="btn btn-sm btn-primary btn-icon m-1" data-bs-toggle="tooltip"
-                                                        title="Lihat Detail">
-                                                        <i class="fas fa-eye"></i> Lihat
+                                                    <a href="{{ route('stok.edit', $stok->id) }}"
+                                                        class="btn btn-sm btn-warning m-1" title="Edit">
+                                                        <i class="fas fa-edit"></i> Edit
                                                     </a>
+                                                    <form action="{{ route('stok.destroy', $stok->id) }}" method="POST"
+                                                        class="d-inline"
+                                                        onsubmit="return confirm('Yakin ingin menghapus stok ini?')">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button class="btn btn-sm btn-danger" title="Hapus">
+                                                            <i class="fas fa-trash"></i> Hapus
+                                                        </button>
+                                                    </form>
                                                 </td>
-
                                             </tr>
                                         @empty
-                                            <tr>
+                                            <tr class="table-warning">
                                                 <td colspan="6" class="text-center text-muted">Tidak ada data stok LPG.
                                                 </td>
                                             </tr>
@@ -139,13 +136,11 @@
 @endsection
 
 @push('scripts')
-    <!-- JS Libraries -->
     <script src="{{ asset('assets/extensions/jquery/jquery.min.js') }}"></script>
     <script src="{{ asset('assets/extensions/datatables.net/js/jquery.dataTables.min.js') }}"></script>
     <script src="{{ asset('assets/extensions/datatables.net-bs5/js/dataTables.bootstrap5.min.js') }}"></script>
     <script src="{{ asset('assets/static/js/pages/datatables.js') }}"></script>
 
-    <!-- Tooltip Init (Bootstrap 5) -->
     <script>
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         tooltipTriggerList.map(function(tooltipTriggerEl) {

@@ -3,9 +3,7 @@
 @section('title', 'Profile')
 
 @push('style')
-    <!-- CSS Libraries -->
-    {{-- <link rel="stylesheet" href="{{ asset('library/jqvmap/dist/jqvmap.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('library/summernote/dist/summernote-bs4.min.css') }}"> --}}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 @endpush
 
 @section('main')
@@ -17,37 +15,31 @@
                         <h3>Profile</h3>
                         <p class="text-subtitle text-muted">Halaman tempat pengguna dapat mengubah informasi profil</p>
                     </div>
-                    <div class="col-12 col-md-6 order-md-2 order-first">
-                    </div>
                 </div>
                 @include('layouts.alert')
             </div>
+
             <section class="section">
                 <div class="row">
                     <div class="col-12 col-lg-4">
                         <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-center align-items-center flex-column">
-                                    <div class="avatar avatar-2xl">
-                                        <img src="{{ Auth::user()->image ? asset('img/user/' . Auth::user()->image) : asset('assets/compiled/jpg/2.jpg') }}"
-                                            alt="Avatar" id="imagePreview">
-                                    </div>
-
-                                    <h3 class="mt-3">{{ Auth::user()->name }}</h3>
-                                    {{-- <p class="text-small">{{ ucfirst(Auth::user()->role) }}</p> --}}
-                                    <!-- Tambahkan Button Edit Data di bawah Nama -->
-                                    <a href="{{ route('profile.edit', Auth::user()) }}"
-                                        class="btn btn-primary mt-2 btn-block">
-                                        Edit Profile
-                                    </a>
-                                    <!-- Updated Button for Change Password -->
-                                    <a href="{{ route('profile.show', Auth::user()) }}"
-                                        class="btn btn-warning mt-2 btn-block">Ganti Password</a>
+                            <div class="card-body text-center">
+                                <div class="avatar avatar-2xl mb-3">
+                                    <img src="{{ $user->image ? asset('img/user/' . $user->image) : asset('assets/compiled/jpg/2.jpg') }}"
+                                        alt="Avatar" id="imagePreview" class="rounded-circle img-fluid">
                                 </div>
+                                <h4>{{ $user->name }}</h4>
+
+                                <a href="{{ route('profile.edit', $user) }}" class="btn btn-primary btn-block mt-3">
+                                    <i class="bi bi-pencil-square"></i> Edit Profile
+                                </a>
+                                <a href="{{ route('profile.show', $user) }}" class="btn btn-warning btn-block mt-2">
+                                    <i class="bi bi-key-fill"></i> Ganti Password
+                                </a>
                             </div>
                         </div>
                     </div>
-                    <!-- Kartu Informasi -->
+
                     <div class="col-12 col-lg-8">
                         <div class="card shadow-sm">
                             <div class="card-header">
@@ -57,29 +49,28 @@
                                 <ul class="list-group list-group-flush">
                                     <li class="list-group-item d-flex justify-content-between">
                                         <span>Nama</span>
-                                        <span class="fw-bold">{{ Auth::user()->name }}</span>
+                                        <span class="fw-bold">{{ $user->name }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between">
                                         <span>Email</span>
-                                        <span class="fw-bold">{{ Auth::user()->email }}</span>
+                                        <span class="fw-bold">{{ $user->email }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between">
                                         <span>NIK</span>
-                                        <span class="fw-bold">{{ Auth::user()->nik }}</span>
+                                        <span class="fw-bold">{{ $user->nik }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between">
                                         <span>No Handphone</span>
-                                        <span class="fw-bold">{{ Auth::user()->no_hp }}</span>
+                                        <span class="fw-bold">{{ $user->no_hp }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between">
                                         <span>Alamat</span>
-                                        <span class="fw-bold text-end"
-                                            style="max-width: 60%;">{{ Auth::user()->alamat }}</span>
+                                        <span class="fw-bold text-end" style="max-width: 60%;">{{ $user->alamat }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between">
                                         <span>Verifikasi</span>
                                         <span>
-                                            @if (Auth::user()->verifikasi == 'Verifikasi')
+                                            @if ($user->verifikasi === 'Verifikasi')
                                                 <span class="badge bg-success"><i class="bi bi-check-circle"></i>
                                                     Verifikasi</span>
                                             @else
@@ -90,10 +81,12 @@
                                     </li>
                                     <li class="list-group-item">
                                         <span class="fw-bold d-block mb-2">Foto KTP</span>
-                                        @if (Auth::user()->ktp)
-                                            <img src="{{ asset('img/user/ktp/' . Auth::user()->ktp) }}"
-                                                alt="Foto KTP {{ Auth::user()->name }}" class="img-fluid rounded shadow-sm"
-                                                style="max-height: 250px;">
+                                        @if ($user->ktp)
+                                            <div class="text-center">
+                                                <img src="{{ asset('img/user/ktp/' . $user->ktp) }}"
+                                                    alt="Foto KTP {{ $user->name }}" class="img-fluid rounded shadow-sm"
+                                                    style="max-height: 250px;">
+                                            </div>
                                         @else
                                             <p class="text-muted">Belum mengunggah KTP.</p>
                                         @endif
@@ -101,6 +94,56 @@
                                 </ul>
                             </div>
                         </div>
+
+                        @php
+                            $lokasi = $user->lokasi ?? null;
+                        @endphp
+
+                        @if ($lokasi)
+                            <div class="card shadow-sm mt-4">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Informasi Lokasi Usaha</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-group list-group-flush">
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Jenis Usaha</span>
+                                            <span class="fw-bold">{{ $lokasi->jenis_usaha }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Nama Usaha</span>
+                                            <span class="fw-bold">{{ $lokasi->nama_usaha }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Alamat Lokasi</span>
+                                            <span class="fw-bold text-end"
+                                                style="max-width: 60%;">{{ $lokasi->alamat }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Stok LPG</span>
+                                            <span class="fw-bold">{{ $lokasi->stok_lpg }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Latitude</span>
+                                            <span class="fw-bold">{{ $lokasi->latitude }}</span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between">
+                                            <span>Longitude</span>
+                                            <span class="fw-bold">{{ $lokasi->longitude }}</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="card shadow-sm mt-4">
+                                <div class="card-header">
+                                    <h5 class="card-title mb-0">Peta Lokasi Usaha</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="map" style="height: 300px;" class="rounded border"></div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </section>
@@ -109,14 +152,23 @@
 @endsection
 
 @push('scripts')
-    <!-- JS Libraies -->
-    {{-- <script src="{{ asset('assets/extensions/perfect-scrollbar/perfect-scrollbar.min.js') }}"></script> --}}
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            @if ($lokasi)
+                const lat = {{ $lokasi->latitude }};
+                const lng = {{ $lokasi->longitude }};
 
+                const map = L.map('map').setView([lat, lng], 15);
 
-    {{-- <script src="{{ asset('assets/compiled/js/app.js') }}"></script> --}}
-    {{-- <script src="{{ asset('assets/extensions/apexcharts/apexcharts.min.js') }}"></script>
-    <script src="{{ asset('assets/static/js/pages/dashboard.js') }}"></script> --}}
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
 
-
-    <!-- Page Specific JS File -->
+                L.marker([lat, lng]).addTo(map)
+                    .bindPopup("Lokasi Usaha: {{ $lokasi->nama_usaha }}")
+                    .openPopup();
+            @endif
+        });
+    </script>
 @endpush

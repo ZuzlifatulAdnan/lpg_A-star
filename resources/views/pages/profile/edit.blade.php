@@ -1,137 +1,158 @@
 @extends('layouts.app')
 
-@section('title', 'Profile')
+@section('title', 'Edit Profil')
 
 @push('style')
-    <!-- CSS Libraries -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
 @endpush
 
 @section('main')
+    @php
+        $role = Auth::user()->role;
+    @endphp
     <div id="main-content">
         <div class="page-heading">
             <div class="page-title">
                 <div class="row">
                     <div class="col-12 col-md-6 order-md-1 order-last">
-                        <h3>Edit Profile</h3>
-                        <p class="text-subtitle text-muted">Halaman tempat pengguna dapat mengubah informasi profil</p>
-                    </div>
-                    <div class="col-12 col-md-6 order-md-2 order-first">
+                        <h3>Edit Profil</h3>
+                        <p class="text-subtitle text-muted">Ubah informasi profil dan lokasi usaha Anda</p>
                     </div>
                 </div>
                 @include('layouts.alert')
             </div>
+
             <section class="section">
                 <div class="row">
-                    <div class="col-12 col-lg-4">
+                    <!-- Left: Foto dan KTP -->
+                    <div class="col-lg-4">
                         <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-center align-items-center flex-column">
-                                    <div class="avatar avatar-2xl">
-                                        <img src="{{ Auth::user()->image ? asset('img/user/' . Auth::user()->image) : asset('assets/compiled/jpg/2.jpg') }}"
-                                            alt="Avatar" id="imagePreview">
-                                    </div>
+                            <div class="card-body text-center">
+                                <img src="{{ $user->image ? asset('img/user/' . $user->image) : asset('assets/compiled/jpg/2.jpg') }}"
+                                    class="rounded-circle img-thumbnail" style="width: 150px;" id="imagePreview">
 
-                                    <h3 class="mt-3">{{ Auth::user()->name }}</h3>
-                                    <a href="{{ route('profile.index') }}" class="btn btn-warning mt-2 btn-block">
-                                        Profile
-                                    </a>
-                                    {{-- Tampilkan gambar KTP saat ini --}}
-                                    @if (Auth::user()->ktp)
-                                        <div class="mt-4">
-                                            <h6 class="text-muted">Gambar KTP</h6>
-                                            <img src="{{ asset('img/user/ktp/' . Auth::user()->ktp) }}" alt="Gambar KTP"
-                                                class="img-fluid border rounded" style="max-height: 250px;">
-                                        </div>
-                                    @endif
-                                </div>
+                                <h4 class="mt-3">{{ $user->name }}</h4>
+                                <a href="{{ route('profile.index') }}" class="btn btn-warning btn-block mt-2">Profile</a>
+
+                                @if ($user->ktp)
+                                    <h6 class="text-muted mt-4">Gambar KTP</h6>
+                                    <img src="{{ asset('img/user/ktp/' . $user->ktp) }}" class="img-fluid border rounded"
+                                        style="max-height: 250px;">
+                                @endif
                             </div>
                         </div>
                     </div>
 
-                    <div class="col-12 col-lg-8">
+                    <!-- Right: Form -->
+                    <div class="col-lg-8">
                         <div class="card">
                             <div class="card-body">
-                                <form action="{{ route('profile.update', Auth::user()->id) }}" method="POST"
-                                    enctype="multipart/form-data">
+                                <form action="{{ route('profile.update', $user->id) }}" method="POST" enctype="multipart/form-data">
                                     @csrf
 
                                     <div class="form-group">
-                                        <label for="name">Nama</label>
-                                        <input type="text" name="name" id="name"
-                                            class="form-control @error('name') is-invalid @enderror"
-                                            value="{{ old('name', Auth::user()->name) }}" required>
-                                        @error('name')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                        <label>Nama</label>
+                                        <input type="text" name="name" class="form-control"
+                                            value="{{ old('name', $user->name) }}" required>
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="email">Email</label>
-                                        <input type="email" name="email" id="email"
-                                            class="form-control @error('email') is-invalid @enderror"
-                                            value="{{ old('email', Auth::user()->email) }}" required>
-                                        @error('email')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                        <label>Email</label>
+                                        <input type="email" name="email" class="form-control"
+                                            value="{{ old('email', $user->email) }}" required>
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="nik">NIK</label>
-                                        <input type="number" name="nik" id="nik"
-                                            class="form-control @error('nik') is-invalid @enderror"
-                                            value="{{ old('nik', Auth::user()->nik) }}" required>
-                                        @error('nik')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                        <label>NIK</label>
+                                        <input type="text" name="nik" class="form-control"
+                                            value="{{ old('nik', $user->nik) }}" required>
                                     </div>
 
                                     <div class="form-group">
                                         <label>Alamat</label>
-                                        <textarea name="alamat" class="form-control @error('alamat') is-invalid @enderror">{{ old('alamat', Auth::user()->alamat) }}</textarea>
-                                        @error('alamat')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                        <textarea name="alamat" class="form-control">{{ old('alamat', $user->alamat) }}</textarea>
                                     </div>
 
                                     <div class="form-group">
                                         <label>No HP</label>
-                                        <input type="text" name="no_hp"
-                                            class="form-control @error('no_hp') is-invalid @enderror"
-                                            value="{{ old('no_hp', Auth::user()->no_hp) }}">
-                                        @error('no_hp')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                        <input type="text" name="no_hp" class="form-control"
+                                            value="{{ old('no_hp', $user->no_hp) }}">
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="file">Gambar</label><br>
-                                        <input type="file" name="file" id="file"
-                                            class="form-control @error('file') is-invalid @enderror" accept="image/*"
-                                            onchange="previewImage(event)">
-                                        @error('file')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                        <label>Foto Profil</label>
+                                        <input type="file" name="file" class="form-control" accept="image/*"
+                                            onchange="previewImage(event, 'imagePreview')">
                                     </div>
+
                                     <div class="form-group">
-                                        <label for="ktp">Gambar KTP</label>
-                                        <input type="file" name="ktp" id="ktp"
-                                            class="form-control @error('ktp') is-invalid @enderror" accept="image/*"
+                                        <label>Foto KTP</label>
+                                        <input type="file" name="ktp" class="form-control" accept="image/*"
                                             onchange="previewImage(event, 'ktpPreview')">
-                                        @error('ktp')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
+                                        <img id="ktpPreview" style="display:none; max-height:150px;"
+                                            class="img-thumbnail mt-2">
+                                    </div>
 
-                                        <div class="mt-2">
-                                            <img id="ktpPreview" src="#" alt="Preview Gambar KTP"
-                                                style="display: none; max-height: 150px;" class="img-thumbnail">
+                                    @if(in_array($role, ['Admin', 'Pengecer']))
+                                        <hr>
+                                        <h5>Informasi Lokasi Usaha</h5>
+
+                                        <div class="form-group">
+                                            <label>Jenis Usaha</label>
+                                            <input type="text" name="jenis_usaha" class="form-control"
+                                                value="{{ old('jenis_usaha', optional($user->lokasi)->jenis_usaha) }}" required>
                                         </div>
-                                    </div>
 
-                                    <div class="form-group">
-                                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
-                                    </div>
+                                        <div class="form-group">
+                                            <label>Nama Usaha</label>
+                                            <input type="text" name="nama_usaha" class="form-control"
+                                                value="{{ old('nama_usaha', optional($user->lokasi)->nama_usaha) }}" required>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Alamat Lokasi</label>
+                                            <textarea name="alamat_lokasi" class="form-control" required>{{ old('alamat_lokasi', optional($user->lokasi)->alamat) }}</textarea>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Stok LPG</label>
+                                            <input type="number" name="stok_lpg" class="form-control"
+                                                value="{{ old('stok_lpg', optional($user->lokasi)->stok_lpg) }}" required>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label>Koordinat Lokasi</label>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <input type="text" name="latitude" id="latitude" class="form-control"
+                                                        value="{{ old('latitude', optional($user->lokasi)->latitude) }}"
+                                                        required placeholder="Latitude">
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <input type="text" name="longitude" id="longitude" class="form-control"
+                                                        value="{{ old('longitude', optional($user->lokasi)->longitude) }}"
+                                                        required placeholder="Longitude">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group mt-2">
+                                            <button type="button" class="btn btn-sm btn-info" onclick="detectLocation()">Deteksi Lokasi Saya</button>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <div id="map" style="height: 300px;"></div>
+                                        </div>
+                                    @endif
+
+                                    <button type="submit" class="btn btn-primary mt-3">Simpan Perubahan</button>
                                 </form>
-
                             </div>
                         </div>
                     </div>
@@ -142,20 +163,58 @@
 @endsection
 
 @push('scripts')
+    <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
     <script>
-        function previewImage(event, previewId) {
-            const preview = document.getElementById(previewId);
-            const file = event.target.files[0];
-            const reader = new FileReader();
+        // Default koordinat jika tidak ada
+        var lat = parseFloat(document.getElementById('latitude')?.value) || -6.2;
+        var lng = parseFloat(document.getElementById('longitude')?.value) || 106.8;
 
-            reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-            }
+        // Inisialisasi peta
+        var map = L.map('map').setView([lat, lng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
 
-            if (file) {
-                reader.readAsDataURL(file);
+        var marker = L.marker([lat, lng], { draggable: true }).addTo(map);
+
+        marker.on('dragend', function(e) {
+            var position = marker.getLatLng();
+            document.getElementById('latitude').value = position.lat;
+            document.getElementById('longitude').value = position.lng;
+        });
+
+        function detectLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    let lat = position.coords.latitude;
+                    let lng = position.coords.longitude;
+
+                    document.getElementById('latitude').value = lat;
+                    document.getElementById('longitude').value = lng;
+
+                    marker.setLatLng([lat, lng]);
+                    map.setView([lat, lng], 15);
+                }, function(error) {
+                    alert('Gagal mendeteksi lokasi: ' + error.message);
+                });
+            } else {
+                alert('Geolocation tidak didukung browser ini');
             }
         }
+
+        // function previewImage(event, previewId) {
+        //     const reader = new FileReader();
+        //     const fileInput = event.target;
+
+        //     reader.onload = function () {
+        //         const output = document.getElementById(previewId);
+        //         output.src = reader.result;
+        //         output.style.display = 'block';
+        //     };
+
+        //     if (fileInput.files[0]) {
+        //         reader.readAsDataURL(fileInput.files[0]);
+        //     }
+        // }
     </script>
 @endpush

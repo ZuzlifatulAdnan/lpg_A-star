@@ -52,7 +52,7 @@
                                             <select name="jenis_pemilik" id="jenis_pemilik"
                                                 class="form-control @error('jenis_pemilik') is-invalid @enderror" required>
                                                 <option value="">-- Pilih Jenis Pemilik --</option>
-                                                @foreach (['Pengecer', 'UMKM', 'Rumah Tangga'] as $jenis)
+                                                @foreach (['UMKM', 'Rumah Tangga'] as $jenis)
                                                     <option value="{{ $jenis }}"
                                                         {{ old('jenis_pemilik', $stok->jenis_pemilik) == $jenis ? 'selected' : '' }}>
                                                         {{ $jenis }}

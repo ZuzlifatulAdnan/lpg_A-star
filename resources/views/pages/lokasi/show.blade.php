@@ -56,6 +56,10 @@
                                     <div>{{ $lokasi->alamat }}</div>
                                 </div>
                                 <div class="col-md-6 mt-3">
+                                    <label class="fw-bold">Stok Lpg</label>
+                                    <div>{{ $lokasi->stok_lpg }}</div>
+                                </div>
+                                <div class="col-md-6 mt-3">
                                     <label class="fw-bold">Latitude</label>
                                     <div>{{ $lokasi->latitude }}</div>
                                 </div>

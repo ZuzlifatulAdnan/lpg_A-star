@@ -56,5 +56,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(stok_lpg::class);
     }
+    public function lokasi()
+    {
+        return $this->hasOne(Lokasi::class, 'user_id');
+    }
 
 }

@@ -36,7 +36,7 @@ Route::middleware(['auth'])->group(function () {
     // riwayat
     Route::resource('riwayat', RiwayatController::class);
     // stok
-    Route::post('/stok/reset-manual', [StoklpgController::class, 'resetStokManual'])->name('stok.resetManual');
+    Route::post('/stok/manual', [StokLpgController::class, 'manualTambah'])->name('stok.manual');
     Route::resource('stok', StoklpgController::class);
     // toko
     Route::resource('toko', TokoController::class);

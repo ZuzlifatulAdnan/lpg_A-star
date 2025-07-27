@@ -4,7 +4,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Ubah Password - Sistem Promosi Pariwisata</title>
+        <title>Ubah Password | Aplikasi LPG 3Kg</title>
 
 
 

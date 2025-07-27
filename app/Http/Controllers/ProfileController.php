@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\lokasi;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,23 +14,26 @@ class ProfileController extends Controller
     public function index()
     {
         $type_menu = 'profile';
-
-        // Mengambil data user yang sedang login
-        $user = Auth::user();
-
+        $user = Auth::user()->load('lokasi'); // include relasi
         return view('pages.profile.index', compact('type_menu', 'user'));
     }
     public function edit()
     {
         $type_menu = 'profile';
-        return view('pages.profile.edit', compact('type_menu'));
+        $user = Auth::user()->load('lokasi');
+
+        return view('pages.profile.edit', compact('type_menu', 'user'));
     }
-    public function update(Request $request, User $user)
+
+    public function update(Request $request)
     {
+        $user = Auth::user();
+        $role = $user->role;
         $image = $request->file('file');
         $ktp = $request->file('ktp');
 
-        $validate = $request->validate([
+        // Validasi umum (semua role)
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $user->id,
             'nik' => 'required|string|unique:users,nik,' . $user->id,
@@ -37,9 +41,23 @@ class ProfileController extends Controller
             'no_hp' => 'nullable|string',
             'file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'ktp' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ];
 
-        ]);
+        // Tambahan validasi untuk Admin & Pengecer
+        if (in_array($role, ['Admin', 'Pengecer'])) {
+            $rules = array_merge($rules, [
+                'jenis_usaha' => 'required',
+                'nama_usaha' => 'required',
+                'alamat_lokasi' => 'required',
+                'stok_lpg' => 'required|numeric',
+                'latitude' => 'required|numeric',
+                'longitude' => 'required|numeric',
+            ]);
+        }
 
+        $request->validate($rules);
+
+        // Update user data
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
@@ -48,40 +66,55 @@ class ProfileController extends Controller
             'no_hp' => $request->no_hp,
         ]);
 
+        // Hanya Admin & Pengecer yang boleh update lokasi
+        if (in_array($role, ['Admin', 'Pengecer'])) {
+
+            $lokasi = Lokasi::where('user_id', $user->id)->first();
+
+            if ($lokasi) {
+                $lokasi->update([
+                    'jenis_usaha' => $request->jenis_usaha,
+                    'nama_usaha' => $request->nama_usaha,
+                    'alamat' => $request->alamat_lokasi,
+                    'stok_lpg' => $request->stok_lpg,
+                    'latitude' => $request->latitude,
+                    'longitude' => $request->longitude,
+                ]);
+            } else {
+                Lokasi::create([
+                    'user_id' => $user->id,
+                    'jenis_usaha' => $request->jenis_usaha,
+                    'nama_usaha' => $request->nama_usaha,
+                    'alamat' => $request->alamat_lokasi,
+                    'stok_lpg' => $request->stok_lpg,
+                    'latitude' => $request->latitude,
+                    'longitude' => $request->longitude,
+                ]);
+            }
+        }
         if ($image) {
+            $imageName = time() . '_user.' . $image->getClientOriginalExtension();
+            $image->move('img/user/', $imageName);
 
-            $path = time() . '.' . $image->getClientOriginalExtension();
-            $image->move('img/user/', $path);
-
-            if ($user->image) {
-                $oldImagePath = 'img/user/' . $user->foto;
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
+            if ($user->image && file_exists('img/user/' . $user->image)) {
+                unlink('img/user/' . $user->image);
             }
 
-            $user->update([
-                'image' => $path
-            ]);
+            $user->update(['image' => $imageName]);
         }
+
         if ($ktp) {
+            $ktpName = time() . '_ktp.' . $ktp->getClientOriginalExtension();
+            $ktp->move('img/user/ktp/', $ktpName);
 
-            $path = time() . '.' . $ktp->getClientOriginalExtension();
-            $ktp->move('img/user/ktp/', $path);
-
-            if ($user->ktp) {
-                $oldImagePath = 'img/user/ktp/' . $user->ktp;
-                if (file_exists($oldImagePath)) {
-                    unlink($oldImagePath);
-                }
+            if ($user->ktp && file_exists('img/user/ktp/' . $user->ktp)) {
+                unlink('img/user/ktp/' . $user->ktp);
             }
 
-            $user->update([
-                'ktp' => $path
-            ]);
+            $user->update(['ktp' => $ktpName]);
         }
 
-        return Redirect::route('profile.index')->with('success', 'Profile berhasil di ubah.');
+        return Redirect::route('profile.index')->with('success', 'Profil berhasil diperbarui.');
     }
     public function show()
     {

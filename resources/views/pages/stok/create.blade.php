@@ -7,7 +7,7 @@
 @endpush
 
 @section('main')
-    @if (Auth::user()->role == 'Admin' || Auth::user()->role == 'Pangkalan')
+    @if (Auth::user()->role == 'Admin')
         <div id="main-content">
             <div class="page-heading">
                 <div class="page-title">
@@ -51,9 +51,6 @@
                                             <select name="jenis_pemilik" id="jenis_pemilik"
                                                 class="form-control @error('jenis_pemilik') is-invalid @enderror" required>
                                                 <option value="">-- Pilih Jenis Pemilik --</option>
-                                                <option value="Pengecer"
-                                                    {{ old('jenis_pemilik') == 'Pengecer' ? 'selected' : '' }}>
-                                                    Pengecer</option>
                                                 <option value="UMKM"
                                                     {{ old('jenis_pemilik') == 'UMKM' ? 'selected' : '' }}>
                                                     UMKM</option>
@@ -76,44 +73,22 @@
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
                                         </div>
-                                        @if (Auth::user()->role == 'Admin')
-                                            {{-- LOKASI --}}
-                                            <div class="form-group mb-3">
-                                                <label for="lokasi_id">Lokasi</label>
-                                                <select name="lokasi_id[]" id="lokasi_id"
-                                                    class="form-control @error('lokasi_id') is-invalid @enderror" multiple
-                                                    required>
-                                                    @foreach ($lokasi as $lok)
-                                                        <option value="{{ $lok->id }}"
-                                                            {{ collect(old('lokasi_id'))->contains($lok->id) ? 'selected' : '' }}>
-                                                            {{ $lok->nama_usaha }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <small class="text-muted">Bisa pilih lebih dari satu lokasi</small>
-                                                @error('lokasi_id')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                        @else
-                                            {{-- LOKASI --}}
-                                            <div class="form-group mb-3">
-                                                <label for="lokasi_id">Lokasi</label>
-                                                <select name="lokasi_id[]" id="lokasi_id"
-                                                    class="form-control @error('lokasi_id') is-invalid @enderror" required>
-                                                    @foreach ($lokasi as $lok)
-                                                        <option value="{{ $lok->id }}"
-                                                            {{ collect(old('lokasi_id'))->contains($lok->id) ? 'selected' : '' }}>
-                                                            {{ $lok->nama_usaha }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                                <small class="text-muted">Bisa pilih lebih dari satu lokasi</small>
-                                                @error('lokasi_id')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                        @endif
+                                        {{-- LOKASI --}}
+                                        <div class="form-group mb-3">
+                                            <label for="lokasi_id">Lokasi</label>
+                                            <select name="lokasi_id" id="lokasi_id"
+                                                class="form-control @error('lokasi_id') is-invalid @enderror" required>
+                                                @foreach ($lokasi as $lok)
+                                                    <option value="{{ $lok->id }}"
+                                                        {{ collect(old('lokasi_id'))->contains($lok->id) ? 'selected' : '' }}>
+                                                        {{ $lok->nama_usaha }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('lokasi_id')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
 
                                         {{-- CATATAN --}}
                                         <div class="form-group mb-3">

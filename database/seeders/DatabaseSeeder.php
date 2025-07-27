@@ -29,23 +29,15 @@ class DatabaseSeeder extends Seeder
                 'name' => 'pelanggan',
                 'email' => 'pelanggan@gmail.com',
                 'password' => Hash::make('12345678'),
-                'nik' => '1829182',
+                'nik' => '1829183',
                 'role' =>'Pelanggan',
                 'created_at' => date('Y-m-d H:i:s')
             ],
             [
-                'name' => 'pangkalan',
-                'email' => 'pangkalan@gmail.com',
-                'password' => Hash::make('12345678'),
-                'nik' => '1829182',
-                'role' =>'Pangkalan',
-                'created_at' => date('Y-m-d H:i:s')
-            ],
-            [
                 'name' => 'pengecer',
-                'email' => 'pengecern@gmail.com',
+                'email' => 'pengecer@gmail.com',
                 'password' => Hash::make('12345678'),
-                'nik' => '1829182',
+                'nik' => '1829185',
                 'role' =>'Pengecer',
                 'created_at' => date('Y-m-d H:i:s')
             ],
