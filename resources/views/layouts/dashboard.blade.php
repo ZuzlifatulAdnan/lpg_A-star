@@ -44,10 +44,23 @@
                     @if (Auth::check())
                         <div class="d-flex align-items-center ms-auto gap-2">
                             <!-- Tombol Beranda -->
-                            <a href="{{ route('beranda.index') }}" class="btn btn-outline-primary"
-                                aria-label="Beranda">
-                                <i class="bi bi-house-door-fill me-1"></i> Beranda
-                            </a>
+                            @if (Auth::user()->role == 'Admin')
+                                <a href="{{ route('beranda.index') }}" class="btn btn-outline-primary"
+                                    aria-label="Beranda">
+                                    <i class="bi bi-house-door-fill me-1"></i> Beranda
+                                </a>
+                            @elseif(Auth::user()->role == 'Pelanggan')
+                                <a href="{{ route('pemesanan.Order') }}" class="btn btn-outline-primary"
+                                    aria-label="Pemesanan">
+                                    <i class="bi bi-house-door-fill me-1"></i> Pemesanan
+                                </a>
+                            @else
+                                <a href="{{ route('stok-lpg.index') }}" class="btn btn-outline-primary"
+                                    aria-label="Stok LPG">
+                                    <i class="bi bi-house-door-fill me-1"></i> Stok LPG
+                                </a>
+                            @endif
+
 
                             <!-- Tombol Logout -->
                             <form action="{{ route('logout') }}" method="POST" class="d-inline">

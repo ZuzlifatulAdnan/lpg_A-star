@@ -91,7 +91,7 @@
                         </li>
                     @endif
                     @if ($role == 'Pengecer')
-                        <li class="sidebar-item {{ $type_menu == 'stok-lpg' ? 'active' : '' }}">
+                        <li class="sidebar-item {{ $type_menu == 'stok' ? 'active' : '' }}">
                             <a href="{{ route('stok-lpg.index') }}" class='sidebar-link'>
                                 <i class="bi bi-box-seam"></i>
                                 <span>Stok LPG</span>
