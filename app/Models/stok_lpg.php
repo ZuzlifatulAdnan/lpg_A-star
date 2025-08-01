@@ -9,10 +9,7 @@ class stok_lpg extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'user_id',
-        'jenis_pemilik',
         'jumlah',
-        'lokasi_id',
     ];
     public function user()
     {

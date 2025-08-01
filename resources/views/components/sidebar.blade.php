@@ -5,7 +5,7 @@
                 <div class="logo">
                     <a href="{{ url('/beranda') }}">
                         <img src="{{ asset('img/logo/logo.png') }}" alt="Logo" class="img-fluid"
-                             style="max-width: 150px; height: auto;">
+                            style="max-width: 200px; height: auto;">
                     </a>
                 </div>
                 <div class="sidebar-toggler x">
@@ -25,20 +25,21 @@
                 <ul class="menu">
                     <li class="sidebar-title">Menu</li>
 
-                    {{-- Semua Role: Beranda --}}
-                    <li class="sidebar-item {{ $type_menu == 'beranda' ? 'active' : '' }}">
-                        <a href="{{ route('beranda.index') }}" class='sidebar-link'>
-                            <i class="bi bi-speedometer2"></i>
-                            <span>Beranda</span>
-                        </a>
-                    </li>
+                    @if ($role == 'Admin')
+                        <li class="sidebar-item {{ $type_menu == 'beranda' ? 'active' : '' }}">
+                            <a href="{{ route('beranda.index') }}" class='sidebar-link'>
+                                <i class="bi bi-speedometer2"></i>
+                                <span>Beranda</span>
+                            </a>
+                        </li>
+                    @endif
 
-                    {{-- Admin dan Pengecer: Data Lokasi --}}
+                    {{-- Admin  Data Lokasi --}}
                     @if ($role == 'Admin')
                         <li class="sidebar-item {{ $type_menu == 'lokasi' ? 'active' : '' }}">
                             <a href="{{ route('lokasi.index') }}" class='sidebar-link'>
                                 <i class="bi bi-geo-alt-fill"></i>
-                                <span>Data Lokasi</span>
+                                <span>Lokasi</span>
                             </a>
                         </li>
                     @endif
@@ -81,7 +82,6 @@
                         </li>
                     @endif
 
-                    {{-- Admin & Pangkalan: Stok LPG --}}
                     @if ($role == 'Admin')
                         <li class="sidebar-item {{ $type_menu == 'stok' ? 'active' : '' }}">
                             <a href="{{ route('stok.index') }}" class='sidebar-link'>
@@ -90,9 +90,16 @@
                             </a>
                         </li>
                     @endif
-
+                    @if ($role == 'Pengecer')
+                        <li class="sidebar-item {{ $type_menu == 'stok-lpg' ? 'active' : '' }}">
+                            <a href="{{ route('stok-lpg.index') }}" class='sidebar-link'>
+                                <i class="bi bi-box-seam"></i>
+                                <span>Stok LPG</span>
+                            </a>
+                        </li>
+                    @endif
                     {{-- Admin, Pangkalan, Pengecer: Toko Terdekat --}}
-                    @if (in_array($role, ['Admin', 'Pelanggan', 'Pengecer']))
+                    @if (in_array($role, ['Admin', 'Pelanggan']))
                         <li class="sidebar-item {{ $type_menu == 'toko' ? 'active' : '' }}">
                             <a href="{{ route('toko.index') }}" class='sidebar-link'>
                                 <i class="bi bi-shop-window"></i>

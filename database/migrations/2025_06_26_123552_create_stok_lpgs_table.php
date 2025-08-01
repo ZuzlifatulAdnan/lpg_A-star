@@ -13,11 +13,7 @@ return new class extends Migration
     {
         Schema::create('stok_lpgs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete()->cascadeOnUpdate();
-            $table->string('jenis_pemilik');
-            $table->string('jumlah');
-            $table->foreignId('lokasi_id')->constrained('lokasis')->cascadeOnDelete()->cascadeOnUpdate();
-            $table->string('catatan')->nullable();
+            $table->string('jumlah')->nullable();
             $table->timestamps();
         });
     }

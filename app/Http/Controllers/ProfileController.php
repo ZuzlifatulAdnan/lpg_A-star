@@ -14,13 +14,13 @@ class ProfileController extends Controller
     public function index()
     {
         $type_menu = 'profile';
-        $user = Auth::user()->load('lokasi'); // include relasi
+        $user = Auth::user(); 
         return view('pages.profile.index', compact('type_menu', 'user'));
     }
     public function edit()
     {
         $type_menu = 'profile';
-        $user = Auth::user()->load('lokasi');
+        $user = Auth::user();
 
         return view('pages.profile.edit', compact('type_menu', 'user'));
     }
@@ -28,7 +28,6 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $user = Auth::user();
-        $role = $user->role;
         $image = $request->file('file');
         $ktp = $request->file('ktp');
 
@@ -43,18 +42,6 @@ class ProfileController extends Controller
             'ktp' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ];
 
-        // Tambahan validasi untuk Admin & Pengecer
-        if (in_array($role, ['Admin', 'Pengecer'])) {
-            $rules = array_merge($rules, [
-                'jenis_usaha' => 'required',
-                'nama_usaha' => 'required',
-                'alamat_lokasi' => 'required',
-                'stok_lpg' => 'required|numeric',
-                'latitude' => 'required|numeric',
-                'longitude' => 'required|numeric',
-            ]);
-        }
-
         $request->validate($rules);
 
         // Update user data
@@ -66,32 +53,6 @@ class ProfileController extends Controller
             'no_hp' => $request->no_hp,
         ]);
 
-        // Hanya Admin & Pengecer yang boleh update lokasi
-        if (in_array($role, ['Admin', 'Pengecer'])) {
-
-            $lokasi = Lokasi::where('user_id', $user->id)->first();
-
-            if ($lokasi) {
-                $lokasi->update([
-                    'jenis_usaha' => $request->jenis_usaha,
-                    'nama_usaha' => $request->nama_usaha,
-                    'alamat' => $request->alamat_lokasi,
-                    'stok_lpg' => $request->stok_lpg,
-                    'latitude' => $request->latitude,
-                    'longitude' => $request->longitude,
-                ]);
-            } else {
-                Lokasi::create([
-                    'user_id' => $user->id,
-                    'jenis_usaha' => $request->jenis_usaha,
-                    'nama_usaha' => $request->nama_usaha,
-                    'alamat' => $request->alamat_lokasi,
-                    'stok_lpg' => $request->stok_lpg,
-                    'latitude' => $request->latitude,
-                    'longitude' => $request->longitude,
-                ]);
-            }
-        }
         if ($image) {
             $imageName = time() . '_user.' . $image->getClientOriginalExtension();
             $image->move('img/user/', $imageName);

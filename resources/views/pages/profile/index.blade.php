@@ -94,56 +94,6 @@
                                 </ul>
                             </div>
                         </div>
-
-                        @php
-                            $lokasi = $user->lokasi ?? null;
-                        @endphp
-
-                        @if ($lokasi)
-                            <div class="card shadow-sm mt-4">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">Informasi Lokasi Usaha</h5>
-                                </div>
-                                <div class="card-body">
-                                    <ul class="list-group list-group-flush">
-                                        <li class="list-group-item d-flex justify-content-between">
-                                            <span>Jenis Usaha</span>
-                                            <span class="fw-bold">{{ $lokasi->jenis_usaha }}</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between">
-                                            <span>Nama Usaha</span>
-                                            <span class="fw-bold">{{ $lokasi->nama_usaha }}</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between">
-                                            <span>Alamat Lokasi</span>
-                                            <span class="fw-bold text-end"
-                                                style="max-width: 60%;">{{ $lokasi->alamat }}</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between">
-                                            <span>Stok LPG</span>
-                                            <span class="fw-bold">{{ $lokasi->stok_lpg }}</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between">
-                                            <span>Latitude</span>
-                                            <span class="fw-bold">{{ $lokasi->latitude }}</span>
-                                        </li>
-                                        <li class="list-group-item d-flex justify-content-between">
-                                            <span>Longitude</span>
-                                            <span class="fw-bold">{{ $lokasi->longitude }}</span>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-
-                            <div class="card shadow-sm mt-4">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">Peta Lokasi Usaha</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div id="map" style="height: 300px;" class="rounded border"></div>
-                                </div>
-                            </div>
-                        @endif
                     </div>
                 </div>
             </section>
@@ -152,23 +102,4 @@
 @endsection
 
 @push('scripts')
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            @if ($lokasi)
-                const lat = {{ $lokasi->latitude }};
-                const lng = {{ $lokasi->longitude }};
-
-                const map = L.map('map').setView([lat, lng], 15);
-
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors'
-                }).addTo(map);
-
-                L.marker([lat, lng]).addTo(map)
-                    .bindPopup("Lokasi Usaha: {{ $lokasi->nama_usaha }}")
-                    .openPopup();
-            @endif
-        });
-    </script>
 @endpush

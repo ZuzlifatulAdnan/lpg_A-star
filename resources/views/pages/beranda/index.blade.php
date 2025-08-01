@@ -91,20 +91,18 @@
         @if (request()->filled('nik'))
             @if ($stoks->count())
                 <div class="row mt-3">
-                    @foreach ($stoks as $stok)
+                    @foreach ($stoks as $user)
                         @php
-                            $user = $stok->user;
-                            $nama = optional($user)->name ?? '-';
-                            $nik = optional($user)->nik ?? '';
+                            $nama = $user->name;
+                            $nik = $user->nik;
                             $nik_sensored =
                                 strlen($nik) > 8
                                     ? substr($nik, 0, 4) . str_repeat('*', strlen($nik) - 8) . substr($nik, -4)
                                     : $nik;
-                            $jumlah_stok = number_format($stok->jumlah ?? 0);
-                            $lokasi = optional($stok->lokasi)->nama_usaha ?? '-';
+                            $jumlah_stok = number_format($user->jumlah ?? 0);
                         @endphp
 
-                        @if (($stok->jumlah ?? 0) == 0)
+                        @if (($user->jumlah ?? 0) == 0)
                             {{-- Kartu blok jika stok kosong --}}
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div
@@ -135,10 +133,6 @@
                                                 <small class="text-muted">NIK: {{ $nik_sensored }}</small>
                                             </div>
                                         </div>
-                                        <p class="mb-1">
-                                            <i class="bi bi-geo-alt text-danger me-1"></i>
-                                            Lokasi: <strong>{{ $lokasi }}</strong>
-                                        </p>
                                         <p class="mb-0">
                                             <i class="bi bi-box-seam text-success me-1"></i>
                                             Stok LPG: <strong>{{ $jumlah_stok }}</strong>

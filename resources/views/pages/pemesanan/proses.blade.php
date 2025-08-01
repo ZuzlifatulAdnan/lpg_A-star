@@ -138,7 +138,7 @@
                                                                     required>
                                                                     @foreach (['Menunggu Pembayaran', 'Proses Pembayaran', 'Pembayaran Berhasil'] as $bayar)
                                                                         <option value="{{ $bayar }}"
-                                                                            {{ $pemesanan->status_pembayaran == $bayar ? 'selected' : '' }}>
+                                                                            {{ $pemesanan->status == $bayar ? 'selected' : '' }}>
                                                                             {{ $bayar }}
                                                                         </option>
                                                                     @endforeach

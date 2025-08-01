@@ -70,8 +70,8 @@
 
                                         <div class="form-group">
                                             <label>Role</label>
-                                            <select name="role" class="form-control @error('role') is-invalid @enderror"
-                                                required>
+                                            <select name="role" id="role"
+                                                class="form-control @error('role') is-invalid @enderror" required>
                                                 <option value="">-- Pilih Role --</option>
                                                 @foreach (['Admin', 'Pelanggan', 'Pengecer'] as $role)
                                                     <option value="{{ $role }}"
@@ -85,6 +85,32 @@
                                             @enderror
                                         </div>
 
+                                        <div class="form-group mb-3" id="jenis_pemilik_group" style="display: none;">
+                                            <label for="jenis_pemilik">Jenis Pemilik</label>
+                                            <select name="jenis_pemilik" id="jenis_pemilik"
+                                                class="form-control @error('jenis_pemilik') is-invalid @enderror">
+                                                <option value="">-- Pilih Jenis Pemilik --</option>
+                                                @foreach (['UMKM', 'Rumah Tangga', 'Pengecer'] as $jenis)
+                                                    <option value="{{ $jenis }}"
+                                                        {{ old('jenis_pemilik', $user->jenis_pemilik) == $jenis ? 'selected' : '' }}>
+                                                        {{ $jenis }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                            @error('jenis_pemilik')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+
+                                        <div class="form-group mb-3" id="jumlah_group" style="display: none;">
+                                            <label for="jumlah">Jumlah LPG</label>
+                                            <input type="number" name="jumlah" id="jumlah" min="1"
+                                                class="form-control @error('jumlah') is-invalid @enderror"
+                                                value="{{ old('jumlah', $user->jumlah) }}">
+                                            @error('jumlah')
+                                                <div class="invalid-feedback">{{ $message }}</div>
+                                            @enderror
+                                        </div>
                                         <div class="form-group">
                                             <label>Verifikasi</label>
                                             <select name="verifikasi"
@@ -180,5 +206,47 @@
             reader.onload = () => document.getElementById('ktpPreview').src = reader.result;
             reader.readAsDataURL(event.target.files[0]);
         }
+        document.addEventListener('DOMContentLoaded', () => {
+            const jenisSelect = document.getElementById('jenis_pemilik');
+            const jumlahInput = document.getElementById('jumlah');
+            const roleSelect = document.getElementById('role');
+            const jenisGroup = document.getElementById('jenis_pemilik_group');
+            const jumlahGroup = document.getElementById('jumlah_group');
+
+            // Fungsi tampil/sembunyi berdasarkan role
+            function toggleJenisJumlah() {
+                if (roleSelect.value === 'Pelanggan') {
+                    jenisGroup.style.display = 'block';
+                    jumlahGroup.style.display = 'block';
+                } else {
+                    jenisGroup.style.display = 'none';
+                    jumlahGroup.style.display = 'none';
+                    jenisSelect.value = '';
+                    jumlahInput.value = '';
+                }
+            }
+
+            // Jalankan saat halaman pertama kali load (misalnya jika ada old value)
+            toggleJenisJumlah();
+
+            // Event saat role diubah
+            roleSelect.addEventListener('change', toggleJenisJumlah);
+
+            // Auto isi jumlah saat jenis_pemilik dipilih
+            jenisSelect.addEventListener('change', function() {
+                const selected = this.value;
+
+                if (selected === 'UMKM') {
+                    jumlahInput.value = 12;
+                    jumlahInput.readOnly = true;
+                } else if (selected === 'Rumah Tangga') {
+                    jumlahInput.value = 6;
+                    jumlahInput.readOnly = true;
+                } else {
+                    jumlahInput.value = '';
+                    jumlahInput.readOnly = false;
+                }
+            });
+        });
     </script>
 @endpush

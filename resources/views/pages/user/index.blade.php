@@ -21,7 +21,18 @@
                     <div class="card">
                         <div class="card-header d-flex justify-content-between">
                             <h5 class="card-title mb-0">Daftar Pengguna</h5>
-                            <a href="{{ route('user.create') }}" class="btn btn-primary">Tambah User</a>
+                            <div class="d-flex gap-2">
+                                <form id="manualResetForm" action="{{ route('stok.manual') }}" method="POST"
+                                    class="d-inline"
+                                    onsubmit="return confirm('Yakin ingin me-reset semua stok secara manual?')">
+                                    @csrf
+                                    <button type="submit" class="btn btn-danger"
+                                        title="Tambah stok otomatis untuk semua pelanggan hari ini">
+                                        <i class="fas fa-sync"></i> Reset Manual
+                                    </button>
+                                </form>
+                                <a href="{{ route('user.create') }}" class="btn btn-primary">Tambah User</a>
+                            </div>
                         </div>
 
                         <div class="card-body">

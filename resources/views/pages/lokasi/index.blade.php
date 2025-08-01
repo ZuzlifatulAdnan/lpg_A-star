@@ -8,7 +8,7 @@
 @endpush
 
 @section('main')
-    @if (Auth::user()->role == 'Admin' || Auth::user()->role == 'Pangkalan' || Auth::user()->role == 'Pengecer')
+    @if (Auth::user()->role == 'Admin')
         <div id="main-content">
             <div class="page-heading">
                 <div class="page-title">

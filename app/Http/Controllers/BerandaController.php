@@ -21,22 +21,18 @@ class BerandaController extends Controller
         $pembayarans = pembayaran::count();
         $pemesanans = pemesanan::count();
 
-        // Keyword pencarian NIK (stok LPG)
+       // Keyword pencarian NIK
         $keyword = trim($request->input('nik'));
-
-        // Keyword pencarian lokasi
         $keywordLokasi = trim($request->input('lokasi'));
 
-        // Query stok LPG berdasarkan NIK user
-        $stoks = stok_lpg::with(['user', 'lokasi'])
-            ->when($keyword, function ($query, $keyword) {
-                $query->whereHas('user', function ($q) use ($keyword) {
-                    $q->where('nik', 'like', "%{$keyword}%");
-                });
+        // Cari user berdasarkan NIK dan role = Pelanggan
+        $stoks = User::when($keyword, function ($query, $keyword) {
+                $query->where('nik', 'like', "%{$keyword}%");
             })
+            ->where('role', 'Pelanggan')
             ->latest()
-            ->paginate(9) // agar cocok dengan 3 kolom (3 x 3 grid)
-            ->appends(['name' => $keyword]);
+            ->paginate(9)
+            ->appends(['nik' => $keyword]);
 
         // Query lokasi berdasarkan pencarian lokasi
         $data_lokasis = lokasi::when($keywordLokasi, function ($query, $keywordLokasi) {

@@ -28,6 +28,8 @@ class User extends Authenticatable
         'no_hp',
         'verifikasi',
         'ktp',
+        'jenis_pemilik',
+        'jumlah',
     ];
 
     /**

@@ -25,27 +25,6 @@
                             <form action="{{ route('pemesanan.storeOrder') }}" method="POST">
                                 @csrf
                                 <div class="row">
-                                    {{-- LOKASI --}}
-                                    <div class="col-md-6 mb-3">
-                                        <label for="lokasi_id">Lokasi</label>
-                                        <select name="lokasi_id" id="lokasi_id" class="form-control" required>
-                                            <option value="">-- Pilih Lokasi --</option>
-                                            @foreach ($lokasis as $lokasi)
-                                                @if ($lokasi)
-                                                    {{-- tambahkan pengecekan --}}
-                                                    <option value="{{ $lokasi->id }}"
-                                                        {{ old('lokasi_id', $lokasi_id ?? '') == $lokasi->id ? 'selected' : '' }}>
-                                                        {{ $lokasi->nama_usaha }}
-                                                    </option>
-                                                @endif
-                                            @endforeach
-                                        </select>
-
-                                        @error('lokasi_id')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-
                                     {{-- JUMLAH --}}
                                     <div class="col-md-6 mb-3">
                                         <label for="jumlah">Jumlah</label>
@@ -67,7 +46,7 @@
                                     </div>
 
                                     {{-- CATATAN --}}
-                                    <div class="col-6 mb-3">
+                                    <div class="col-12 mb-3">
                                         <label for="catatan">Catatan</label>
                                         <textarea name="catatan" class="form-control">{{ old('catatan') }}</textarea>
                                         @error('catatan')
@@ -96,14 +75,6 @@
     <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Dropdown Lokasi
-            new Choices('#lokasi_id', {
-                searchEnabled: true,
-                itemSelectText: '',
-                placeholderValue: 'Pilih Lokasi',
-                shouldSort: false,
-            });
-
             // Hitung total harga otomatis
             const jumlahInput = document.getElementById('jumlah');
             const totalHargaInput = document.getElementById('total_harga');

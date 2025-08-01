@@ -41,24 +41,6 @@
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
-
-                                    {{-- LOKASI --}}
-                                    <div class="col-md-6 mb-3">
-                                        <label for="lokasi_id">Lokasi</label>
-                                        <select name="lokasi_id" id="lokasi_id" class="form-control">
-                                            <option value="">-- Pilih Lokasi --</option>
-                                            @foreach ($lokasis as $lokasi)
-                                                <option value="{{ $lokasi->id }}"
-                                                    {{ old('lokasi_id') == $lokasi->id ? 'selected' : '' }}>
-                                                    {{ $lokasi->nama_usaha }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error('lokasi_id')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-
                                     {{-- JUMLAH --}}
                                     <div class="col-md-6 mb-3">
                                         <label for="jumlah">Jumlah</label>
@@ -139,13 +121,6 @@
                 searchEnabled: true,
                 itemSelectText: '',
                 placeholderValue: 'Pilih Pengguna',
-                shouldSort: false,
-            });
-
-            new Choices('#lokasi_id', {
-                searchEnabled: true,
-                itemSelectText: '',
-                placeholderValue: 'Pilih Lokasi',
                 shouldSort: false,
             });
 

@@ -52,6 +52,17 @@
                                             <th>Role</th>
                                             <td>{{ ucfirst($user->role) }}</td>
                                         </tr>
+                                        @if ($user->role == 'Pelanggan')
+                                            <tr>
+                                                <th>Jenis Pemilik</th>
+                                                <td>{{ ucfirst($user->jenis_pemilik) }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>Jumlah LPG</th>
+                                                <td>{{ $user->jumlah }}</td>
+                                            </tr>
+                                        @endif
+
                                         <tr>
                                             <th>Verifikasi</th>
                                             <td>

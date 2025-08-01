@@ -14,6 +14,7 @@
 
 @section('main')
     <div id="main-content">
+        @include('layouts.alert')
         <div class="page-heading">
             <h3>Toko Terdekat (A*)</h3>
             <p class="text-muted">Pilih metode untuk menentukan lokasi Anda.</p>
@@ -96,7 +97,7 @@
                                             <div>
                                                 <h6 class="mb-1">{{ $store->nama_usaha }}</h6>
                                                 <div class="text-muted small mb-1">
-                                                    <i class="bi bi-briefcase"></i> {{ $store->tipe ?? 'Pangkalan' }}
+                                                    <i class="bi bi-briefcase"></i> {{ $store->jenis_usaha }}
                                                     {{-- &nbsp;|&nbsp;
                                                     <i class="bi bi-box"></i> {{ $store->keterangan ?? '-' }} --}}
                                                 </div>

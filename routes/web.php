@@ -9,6 +9,7 @@ use App\Http\Controllers\PemesananController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RiwayatController;
 use App\Http\Controllers\StoklpgController;
+use App\Http\Controllers\StokPengecerController;
 use App\Http\Controllers\TokoController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('beranda', BerandaController::class);
     // lokasi
     Route::resource('lokasi', LokasiController::class);
+    // stok lpg
+    Route::resource('stok-lpg', StokPengecerController::class);
     // pembayaran
     Route::get('/pembayaran/{id}/edit-user', [PembayaranController::class, 'editUser'])->name('pembayaran.edit_user');
     Route::put('/pembayaran/{id}/edit-user', [PembayaranController::class, 'updateUser'])->name('pembayaran.update_user');
@@ -36,11 +39,11 @@ Route::middleware(['auth'])->group(function () {
     // riwayat
     Route::resource('riwayat', RiwayatController::class);
     // stok
-    Route::post('/stok/manual', [StokLpgController::class, 'manualTambah'])->name('stok.manual');
-    Route::resource('stok', StoklpgController::class);
+        Route::resource('stok', StoklpgController::class);
     // toko
     Route::resource('toko', TokoController::class);
     // User
+    Route::post('/stok/manual', [UserController::class, 'manualTambah'])->name('stok.manual');
     Route::resource('user', UserController::class);
     // Profile
     Route::resource('profile', ProfileController::class);

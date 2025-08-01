@@ -35,7 +35,9 @@
             <nav class="navbar navbar-expand navbar-light">
                 <div class="container-fluid">
                     <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('dashboard.index') }}">
-                        <img src="{{ asset('img/logo/logo-l.png') }}" alt="Pertamina Logo" height="40">
+                        <img src="{{ asset('img/logo/logo.png') }}" alt="Logo LPG" class="img-fluid"
+                            style="height: 60px;">
+
                         <span class="fw-bold text-primary d-none d-md-inline">Aplikasi LPG</span>
                     </a>
 

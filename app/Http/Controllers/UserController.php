@@ -61,6 +61,8 @@ class UserController extends Controller
             'alamat' => 'nullable|string',
             'no_hp' => 'nullable|string',
             'role' => 'required|string',
+            'jenis_pemilik' => 'nullable',
+            'jumlah' => 'nullable',
             'password' => 'required|min:8|confirmed',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif',
             'verifikasi' => 'required|string',
@@ -74,7 +76,7 @@ class UserController extends Controller
             $image->move('img/user/', $imagePath);
         }
         $ktpPath = null;
-         if ($request->hasFile('ktp')) {
+        if ($request->hasFile('ktp')) {
             $ktp = $request->file('ktp');
             $ktpPath = uniqid() . '.' . $ktp->getClientOriginalExtension();
             $ktp->move('img/user/ktp/', $ktpPath);
@@ -85,12 +87,14 @@ class UserController extends Controller
             'email' => $validatedData['email'],
             'password' => Hash::make($validatedData['password']),
             'role' => $validatedData['role'],
+            'jenis_pemilik' => $validatedData['jenis_pemilik'],
+            'jumlah' => $validatedData['jumlah'],
             'nik' => $validatedData['nik'],
             'image' => $imagePath, // Store the image path if available
             'alamat' => $validatedData['alamat'],
             'no_hp' => $validatedData['no_hp'],
             'verifikasi' => $validatedData['verifikasi'],
-            'ktp' => $ktpPath, 
+            'ktp' => $ktpPath,
         ]);
 
         //jika proses berhsil arahkan kembali ke halaman users dengan status success
@@ -121,6 +125,8 @@ class UserController extends Controller
             'alamat' => 'nullable|string',
             'no_hp' => 'nullable|string',
             'role' => 'required|string',
+            'jenis_pemilik' => 'nullable',
+            'jumlah' => 'nullable',
             'password' => 'nullable|min:8|confirmed',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,gif',
             'verifikasi' => 'required|string',
@@ -132,6 +138,8 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'role' => $request->role,
+            'jenis_pemilik' => $request->jenis_pemilik,
+            'jumlah' => $request->jumlah,
             'nik' => $request->nik,
             'alamat' => $request->alamat,
             'no_hp' => $request->no_hp,
@@ -199,6 +207,44 @@ class UserController extends Controller
     {
         $type_menu = 'user';
         return view('pages.user.show', compact('user', 'type_menu'));
+    }
+    public function manualTambah()
+    {
+        $users = User::where('role', 'Pelanggan')->get();
+        $berhasil = 0;
+
+        foreach ($users as $user) {
+            // Ambil jenis pemilik dari data user saat ini
+            $jenis = $user->jenis_pemilik ?? 'Rumah Tangga';
+
+            // Tentukan jumlah berdasarkan jenis pemilik
+            $jumlah = match ($jenis) {
+                'UMKM' => 12,
+                'Rumah Tangga' => 6,
+                default => 3,
+            };
+
+            // Cek apakah user sudah mendapatkan kuota hari ini
+            $updatedHariIni = $user->updated_at->isToday();
+
+            if ($updatedHariIni) {
+                // Sudah dapat hari ini, update kuota
+                $user->update([
+                    'jumlah' => $jumlah,
+                ]);
+            } else {
+                // Tambah kuota dan update jenis_pemilik jika diperlukan
+                $user->update([
+                    'jumlah' => $jumlah,
+                    'jenis_pemilik' => $jenis,
+                ]);
+            }
+
+            $berhasil++;
+        }
+
+        return redirect()->route('user.index')
+            ->with('success', "$berhasil kuota berhasil diperbarui untuk pelanggan.");
     }
 
 }
