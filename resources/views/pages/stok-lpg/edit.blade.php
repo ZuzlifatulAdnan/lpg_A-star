@@ -9,7 +9,7 @@
                 <div class="page-title">
                     <div class="row">
                         <div class="col-12 col-md-6 order-md-1 order-last">
-                            <h3>Edit Stok LPG</h3>
+                            <h3>Edit Stok LPG Pengecer</h3>
                             <p class="text-subtitle text-muted">Halaman untuk mengedit data stok LPG Pengecer.</p>
                         </div>
                     </div>

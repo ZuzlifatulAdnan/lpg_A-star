@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Detail Lokasi')
+@section('title', 'Detail Data Pengecer')
 
 @push('style')
     <!-- Leaflet CSS -->
@@ -23,8 +23,8 @@
                 <div class="page-title">
                     <div class="row mb-2">
                         <div class="col-12 col-md-6 order-md-1 order-last">
-                            <h3>Detail Lokasi</h3>
-                            <p class="text-subtitle text-muted">Halaman ini menampilkan informasi lengkap lokasi usaha.</p>
+                            <h3>Detail Data Pengecer</h3>
+                            <p class="text-subtitle text-muted">Halaman ini menampilkan informasi lengkap Data Pengecerusaha.</p>
                         </div>
                     </div>
                 </div>
@@ -32,7 +32,7 @@
                 <section class="section">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0">Informasi Lokasi</h5>
+                            <h5 class="card-title mb-0">Informasi Data Pengeceri</h5>
                             <a href="{{ route('lokasi.index') }}" class="btn btn-sm btn-warning">
                                 <i class="fas fa-arrow-left me-1"></i> Kembali
                             </a>

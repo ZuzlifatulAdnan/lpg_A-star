@@ -14,8 +14,8 @@
                 <div class="page-title">
                     <div class="row">
                         <div class="col-12 col-md-6 order-md-1 order-last">
-                            <h3>Lokasi</h3>
-                            <p class="text-subtitle text-muted">Halaman untuk mengelola data lokasi usaha pengguna LPG 3Kg.
+                            <h3>Data Pengecer</h3>
+                            <p class="text-subtitle text-muted">Halaman untuk mengelola Data Pengecer  LPG 3Kg.
                             </p>
                         </div>
                     </div>
@@ -26,7 +26,7 @@
                 <section class="section">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0">Daftar Lokasi</h5>
+                            <h5 class="card-title mb-0">Data Pengecer</h5>
                             @if (Auth::user()->role == 'Admin')
                                 <a href="{{ route('lokasi.create') }}" class="btn btn-primary">Tambah</a>
                             @endif

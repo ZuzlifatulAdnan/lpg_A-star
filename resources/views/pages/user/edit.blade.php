@@ -86,10 +86,10 @@
                                         </div>
 
                                         <div class="form-group mb-3" id="jenis_pemilik_group" style="display: none;">
-                                            <label for="jenis_pemilik">Jenis Pemilik</label>
+                                            <label for="jenis_pemilik">Kategori Pelanggan</label>
                                             <select name="jenis_pemilik" id="jenis_pemilik"
                                                 class="form-control @error('jenis_pemilik') is-invalid @enderror">
-                                                <option value="">-- Pilih Jenis Pemilik --</option>
+                                                <option value="">-- Pilih Kategori Pelanggan --</option>
                                                 @foreach (['UMKM', 'Rumah Tangga', 'Pengecer'] as $jenis)
                                                     <option value="{{ $jenis }}"
                                                         {{ old('jenis_pemilik', $user->jenis_pemilik) == $jenis ? 'selected' : '' }}>
@@ -103,7 +103,7 @@
                                         </div>
 
                                         <div class="form-group mb-3" id="jumlah_group" style="display: none;">
-                                            <label for="jumlah">Jumlah LPG</label>
+                                            <label for="jumlah">Batas Kuota Pembelian</label>
                                             <input type="number" name="jumlah" id="jumlah" min="1"
                                                 class="form-control @error('jumlah') is-invalid @enderror"
                                                 value="{{ old('jumlah', $user->jumlah) }}">

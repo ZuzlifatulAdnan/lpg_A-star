@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Tambah Lokasi')
+@section('title', 'Tambah Data Pengecer')
 
 @push('style')
     <!-- Leaflet CSS -->
@@ -26,8 +26,8 @@
                 <div class="page-title">
                     <div class="row">
                         <div class="col-12 col-md-6 order-md-1 order-last">
-                            <h3>Tambah Lokasi</h3>
-                            <p class="text-subtitle text-muted">Form untuk menambahkan data lokasi usaha ke sistem.</p>
+                            <h3>Tambah Data Pengecer</h3>
+                            <p class="text-subtitle text-muted">Form untuk menambahkan Data Pengecer usaha ke sistem.</p>
                         </div>
                     </div>
                     @include('layouts.alert')
@@ -36,7 +36,7 @@
                 <section class="section">
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="card-title mb-0">Form Lokasi Usaha</h5>
+                            <h5 class="card-title mb-0">Form Data Pengecer</h5>
                         </div>
                         <div class="card-body">
                             <form action="{{ route('lokasi.store') }}" method="POST">

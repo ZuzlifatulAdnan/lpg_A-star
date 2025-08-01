@@ -54,11 +54,11 @@
                                         </tr>
                                         @if ($user->role == 'Pelanggan')
                                             <tr>
-                                                <th>Jenis Pemilik</th>
+                                                <th>Kategori Pelanggan</th>
                                                 <td>{{ ucfirst($user->jenis_pemilik) }}</td>
                                             </tr>
                                             <tr>
-                                                <th>Jumlah LPG</th>
+                                                <th>Batas Kuota Pembelian</th>
                                                 <td>{{ $user->jumlah }}</td>
                                             </tr>
                                         @endif

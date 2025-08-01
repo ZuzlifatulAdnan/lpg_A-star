@@ -39,7 +39,7 @@
                         <li class="sidebar-item {{ $type_menu == 'lokasi' ? 'active' : '' }}">
                             <a href="{{ route('lokasi.index') }}" class='sidebar-link'>
                                 <i class="bi bi-geo-alt-fill"></i>
-                                <span>Lokasi</span>
+                                <span>Data Pengecer</span>
                             </a>
                         </li>
                     @endif
